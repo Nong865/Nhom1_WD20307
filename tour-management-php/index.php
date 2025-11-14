@@ -17,7 +17,7 @@ switch($action) {
         $controller->addTour();
         break;
     default:
-        echo "<h2>Welcome to Tour Management (PHP MVC demo)</h2>";
+        // echo "<h2>Welcome to Tour Management (PHP MVC demo)</h2>";
         echo "<p><a href='index.php?action=listTours'>Xem danh sách tour</a></p>";
         break;
 }
