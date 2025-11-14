@@ -1,7 +1,7 @@
 <?php
 // Database config for XAMPP default: user=root, no password
 $DB_HOST = '127.0.0.1';
-$DB_NAME = 'tour_management';
+$DB_NAME = 'duan1';
 $DB_USER = 'root';
 $DB_PASS = '';
 
@@ -10,6 +10,6 @@ try {
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     echo "<h3>Database connection failed:</h3>" . $e->getMessage();
-    exit;
+    // exit;
 }
 ?>
