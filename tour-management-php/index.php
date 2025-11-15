@@ -52,5 +52,6 @@ if (in_array($action, $tourActions)) {
             echo "<p><a href='index.php?action=hdvIndex'>Xem danh sách HDV</a></p>";
             break;
     }
+
 }
 ?>
