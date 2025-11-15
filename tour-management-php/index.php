@@ -1,5 +1,4 @@
 <?php
-// Simple router for PHP MVC demo
 require_once __DIR__ . '/app/config/database.php';
 
 // Tour controller
@@ -12,21 +11,34 @@ $tourActions = ['listTours','addTourForm','addTour'];
 if (in_array($action, $tourActions)) {
     $controller = new TourController();
     switch($action) {
-        case 'listTours':
-            $controller->listTours();
-            break;
-        case 'addTourForm':
-            $controller->showAddForm();
-            break;
-        case 'addTour':
-            $controller->addTour();
-            break;
+           case 'listTours':
+        $controller->listTours();
+        break;
+    case 'addTourForm':
+        $controller->showAddForm();
+        break;
+    case 'addTour':
+        $controller->addTour();
+        break;
+    
+    case 'viewAlbum':
+        $controller->viewAlbum(); 
+    case 'editTour': 
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $controller->editTour();
+        } else {
+            $controller->showEditForm(); 
+        }
+        break;
+        
+    case 'deleteTour':
+        $controller->deleteTour();
+        break;
     }
 } else {
     // HDV (nhân viên) controller
     require_once __DIR__ . '/app/controllers/HdvController.php';
     $controller = new HdvController();
-
     switch($action) {
         case 'hdvIndex':       // danh sách HDV
             $controller->index();
