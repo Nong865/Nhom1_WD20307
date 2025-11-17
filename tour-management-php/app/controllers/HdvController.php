@@ -2,11 +2,12 @@
 require_once __DIR__ . "/../models/HuongDanVien.php";
 
 class HdvController {
+    private $db;
+    private $hdvModel;
 
-    private $model;
-
-    public function __construct() {
-        $this->model = new HuongDanVien();
+    public function __construct($db_connection) {
+        $this ->db = $db_connection;
+        $this->model = new HuongDanVien($this ->db);
     }
 
     // Danh sách HDV

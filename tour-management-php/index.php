@@ -1,13 +1,36 @@
 <?php
+// Dòng 2: Tải file cấu hình database. File này chứa các biến $DB_HOST, $DB_USER, v.v.
 require_once __DIR__ . '/app/config/database.php';
 
+// ===========================================
+// Code tạo kết nối PDO (ĐÃ SỬA LỖI)
+// ===========================================
+try {
+    // Dòng 7: Sử dụng biến (chú ý $), các biến này đã được định nghĩa trong database.php
+    $dsn = "mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4";
+    
+    // Dòng 8: SỬA LỖI: Dùng $DB_USER và $DB_PASS (biến) thay vì hằng số
+    $db = new PDO($dsn, $DB_USER, $DB_PASS);
+    
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Lỗi kết nối cơ sở dữ liệu: " . $e->getMessage());
+}
+// ===========================================
+
+
 require_once __DIR__ . '/app/controllers/TourController.php';
+
 $action = $_GET['action'] ?? 'home';
 $controller = null;
 
-$tourActions = ['listTours','addTourForm','addTour'];
+$tourActions = ['listTours','addTourForm','addTour','viewAlbum', 'addPhotoForm', 'addPhoto'];
+
 if (in_array($action, $tourActions)) {
-    $controller = new TourController();
+    // Nếu TourController cần kết nối, bạn cũng nên truyền $db vào đây:
+    // $controller = new TourController($db); 
+    $controller = new TourController($db); 
     switch($action) {
         case 'listTours':
             $controller->listTours();
@@ -18,28 +41,40 @@ if (in_array($action, $tourActions)) {
         case 'addTour':
             $controller->addTour();
             break;
+        case 'viewAlbum' :
+            $controller->viewAlbum();
+            break;
+        case 'addPhotoForm': 
+            $controller->addPhotoForm();
+            break;
+        case 'addPhoto': 
+            $controller->addPhoto();
+            break;
     }
 } else {
     require_once __DIR__ . '/app/controllers/HdvController.php';
-    $controller = new HdvController();
+    
+    // Đã sửa lỗi: Biến $db đã được định nghĩa và truyền vào Controller
+    $controller = new HdvController($db); 
+
 
     switch($action) {
-        case 'hdvIndex':      
+        case 'hdvIndex':        
             $controller->index();
             break;
-        case 'hdvCreate':     
+        case 'hdvCreate':       
             $controller->create();
             break;
-        case 'hdvStore':     
+        case 'hdvStore':       
             $controller->store();
             break;
-        case 'hdvEdit':        
+        case 'hdvEdit':         
             $controller->edit();
             break;
-        case 'hdvUpdate':     
+        case 'hdvUpdate':      
             $controller->update();
             break;
-        case 'hdvDelete':     
+        case 'hdvDelete':      
             $controller->delete();
             break;
         default:
