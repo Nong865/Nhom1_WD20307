@@ -33,13 +33,16 @@ include_once __DIR__ . '/../../../public/html/header.php';
                 <tr>
                     <td><?php echo htmlspecialchars($t['id']); ?></td>
                     <td><?php echo htmlspecialchars($t['name']); ?></td>
-                    <td>
-                        <?php if (!empty($t['main_image'])): ?>
-                            <img src="<?php echo htmlspecialchars($t['main_image']); ?>" alt="Ảnh Tour" style="width: 80px; height: auto;">
+                   <td>
+                         <?php if (!empty($t['main_image'])): 
+
+                                $full_image_path = $t['main_image']; 
+                        ?>
+                                    <img src="<?php echo $base_path . htmlspecialchars($full_image_path); ?>" alt="Ảnh Tour" style="width: 80px; height: auto;">
                         <?php else: ?>
-                            N/A
+                                 N/A
                         <?php endif; ?>
-                    </td>
+                        </td>
                     
                     <td>
                         <a href="index.php?action=viewAlbum&tour_id=<?php echo $t['id']; ?>" class="btn btn-info btn-sm">

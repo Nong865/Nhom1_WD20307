@@ -1,3 +1,6 @@
+<?php 
+$base_path = '/Duan1/tour-management-php/tour-management-php/'; 
+?>
 <!doctype html>
 <html lang="vi">
 <head>
