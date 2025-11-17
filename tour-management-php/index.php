@@ -1,16 +1,62 @@
 <?php
+// Dòng 2: Tải file cấu hình database. File này chứa các biến $DB_HOST, $DB_USER, v.v.
 require_once __DIR__ . '/app/config/database.php';
 
-// Tour controller
+// ===========================================
+// Code tạo kết nối PDO (ĐÃ SỬA LỖI)
+// ===========================================
+try {
+    // Dòng 7: Sử dụng biến (chú ý $), các biến này đã được định nghĩa trong database.php
+    $dsn = "mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4";
+    
+    // Dòng 8: SỬA LỖI: Dùng $DB_USER và $DB_PASS (biến) thay vì hằng số
+    $db = new PDO($dsn, $DB_USER, $DB_PASS);
+    
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Lỗi kết nối cơ sở dữ liệu: " . $e->getMessage());
+}
+// ===========================================
+
+
 require_once __DIR__ . '/app/controllers/TourController.php';
+
 $action = $_GET['action'] ?? 'home';
 $controller = null;
 
+<<<<<<< HEAD
+$tourActions = ['listTours','addTourForm','addTour','viewAlbum', 'addPhotoForm', 'addPhoto'];
+
+=======
 // Nếu URL là tour
 $tourActions = ['listTours','addTourForm','addTour'];
+>>>>>>> 6057e97e941946d8d762430ca5ddadb9b7aa28d8
 if (in_array($action, $tourActions)) {
-    $controller = new TourController();
+    // Nếu TourController cần kết nối, bạn cũng nên truyền $db vào đây:
+    // $controller = new TourController($db); 
+    $controller = new TourController($db); 
     switch($action) {
+<<<<<<< HEAD
+        case 'listTours':
+            $controller->listTours();
+            break;
+        case 'addTourForm':
+            $controller->showAddForm();
+            break;
+        case 'addTour':
+            $controller->addTour();
+            break;
+        case 'viewAlbum' :
+            $controller->viewAlbum();
+            break;
+        case 'addPhotoForm': 
+            $controller->addPhotoForm();
+            break;
+        case 'addPhoto': 
+            $controller->addPhoto();
+            break;
+=======
            case 'listTours':
         $controller->listTours();
         break;
@@ -34,28 +80,36 @@ if (in_array($action, $tourActions)) {
     case 'deleteTour':
         $controller->deleteTour();
         break;
+>>>>>>> 6057e97e941946d8d762430ca5ddadb9b7aa28d8
     }
 } else {
-    // HDV (nhân viên) controller
     require_once __DIR__ . '/app/controllers/HdvController.php';
+<<<<<<< HEAD
+    
+    // Đã sửa lỗi: Biến $db đã được định nghĩa và truyền vào Controller
+    $controller = new HdvController($db); 
+
+
+=======
     $controller = new HdvController();
+>>>>>>> 6057e97e941946d8d762430ca5ddadb9b7aa28d8
     switch($action) {
-        case 'hdvIndex':       // danh sách HDV
+        case 'hdvIndex':        
             $controller->index();
             break;
-        case 'hdvCreate':      // form thêm HDV
+        case 'hdvCreate':       
             $controller->create();
             break;
-        case 'hdvStore':       // xử lý thêm
+        case 'hdvStore':       
             $controller->store();
             break;
-        case 'hdvEdit':        // form sửa
+        case 'hdvEdit':         
             $controller->edit();
             break;
-        case 'hdvUpdate':      // xử lý sửa
+        case 'hdvUpdate':      
             $controller->update();
             break;
-        case 'hdvDelete':      // xóa HDV
+        case 'hdvDelete':      
             $controller->delete();
             break;
         default:

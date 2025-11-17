@@ -80,15 +80,9 @@ class Tour {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
-    // THÊM HÀM MỚI: Lấy chi tiết Tour theo ID
-    // public function getTourById($id) {
-    //     $stmt = $this->conn->prepare("SELECT id, name FROM {$this->table} WHERE id = :id LIMIT 1");
-    //     $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-    //     $stmt->execute();
-    //     return $stmt->fetch(PDO::FETCH_ASSOC);
-    // }
+  
 
-    public function create() {
+    public function create($data) {
         $sql = "INSERT INTO {$this->table} 
                 (name, price, description, start_date, end_date, staff_id, supplier_id, main_image) 
                 VALUES 
@@ -96,14 +90,14 @@ class Tour {
         
         $stmt = $this->conn->prepare($sql);
         
-        $stmt->bindParam(':name', $this->name);
-        $stmt->bindParam(':price', $this->price);
-        $stmt->bindParam(':description', $this->description);
-        $stmt->bindParam(':start_date', $this->start_date);
-        $stmt->bindParam(':end_date', $this->end_date);
-        $stmt->bindParam(':staff_id', $this->staff_id);
-        $stmt->bindParam(':supplier_id', $this->supplier_id);
-        $stmt->bindParam(':main_image', $this->main_image);
+        $stmt->bindParam(':name', $data['name']);
+        $stmt->bindParam(':price', $data['price']);
+        $stmt->bindParam(':description', $data['description']);
+        $stmt->bindParam(':start_date', $data['start_date']);
+        $stmt->bindParam(':end_date', $data['end_date']);
+        $stmt->bindParam(':staff_id', $data['staff_id']);
+        $stmt->bindParam(':supplier_id', $data['supplier_id']);
+        $stmt->bindParam(':main_image', $data['main_image']);
         
         return $stmt->execute();
     }
