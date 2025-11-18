@@ -1,7 +1,7 @@
 <?php
 function connectDB() {
     $DB_HOST = '127.0.0.1';
-    $DB_NAME = 'duan1';
+    $DB_NAME = 'duan1'; // đúng tên database của bạn
     $DB_USER = 'root';
     $DB_PASS = '';
 
@@ -13,4 +13,3 @@ function connectDB() {
         die("<h3>Database connection failed:</h3>" . $e->getMessage());
     }
 }
-?>

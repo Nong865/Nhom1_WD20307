@@ -11,10 +11,13 @@ class TourController {
     private $supplierModel; 
 
     public function __construct() {
-        global $conn;
-        $this->db = $conn;
-        $this->tourModel = new Tour($this->db);
-        $this->staffModel = new Staff($this->db);
+        // KHÔNG dùng global $conn nữa
+        // Gọi hàm connectDB() trong database.php
+        $this->db = connectDB();
+
+        // Truyền kết nối DB vào các model
+        $this->tourModel     = new Tour($this->db);
+        $this->staffModel    = new Staff($this->db);
         $this->supplierModel = new Supplier($this->db);
     }
 
@@ -24,7 +27,7 @@ class TourController {
     }
 
     public function showAddForm() {
-        $staff_list = $this->staffModel->getAll();
+        $staff_list    = $this->staffModel->getAll();
         $supplier_list = $this->supplierModel->getAll();
         include __DIR__ . '/../views/admin/addTour.php';
     }
@@ -49,8 +52,8 @@ class TourController {
                 $file_tmp = $_FILES['main_image']['tmp_name'];
                 
                 // Tạo tên file duy nhất để tránh trùng lặp
-                $file_extension = pathinfo($_FILES['main_image']['name'], PATHINFO_EXTENSION);
-                $file_name = uniqid('tour_img_') . '.' . $file_extension;
+                $file_extension  = pathinfo($_FILES['main_image']['name'], PATHINFO_EXTENSION);
+                $file_name       = uniqid('tour_img_') . '.' . $file_extension;
                 $file_destination = $upload_dir . $file_name;
 
                 // Di chuyển file từ thư mục tạm thời sang thư mục vĩnh viễn
@@ -62,22 +65,24 @@ class TourController {
             // Hết xử lý file upload
 
             // 2. GÁN DỮ LIỆU VÀO MODEL
-            $this->tourModel->name = $_POST['name'] ?? '';
-            $this->tourModel->price = $_POST['price'] ?? 0;
+            $this->tourModel->name        = $_POST['name']        ?? '';
+            $this->tourModel->price       = $_POST['price']       ?? 0;
             $this->tourModel->description = $_POST['description'] ?? '';
-            $this->tourModel->start_date = $_POST['start_date'] ?? null;
-            $this->tourModel->end_date = $_POST['end_date'] ?? null;
+            $this->tourModel->start_date  = $_POST['start_date']  ?? null;
+            $this->tourModel->end_date    = $_POST['end_date']    ?? null;
             
             // Các trường khóa ngoại
-            $this->tourModel->staff_id = $_POST['staff_id'] ?? null; 
+            $this->tourModel->staff_id    = $_POST['staff_id']    ?? null; 
             $this->tourModel->supplier_id = $_POST['supplier_id'] ?? null; 
             
             // Gán đường dẫn ảnh chính đã xử lý
-            $this->tourModel->main_image = $main_image_path; 
+            $this->tourModel->main_image  = $main_image_path; 
             
             // 3. TẠO TOUR
             $ok = $this->tourModel->create();
             if ($ok) {
+                // Nếu router của bạn cần thêm controller thì sửa lại cho đúng
+                // ví dụ: index.php?controller=tour&action=listTours
                 header('Location: index.php?action=listTours');
                 exit;
             } else {
