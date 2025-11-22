@@ -39,7 +39,6 @@ if (in_array($action, $tourActions)) {
     // HDV (nhân viên) controller
     require_once __DIR__ . '/app/controllers/HdvController.php';
     $controller = new HdvController();
-
     switch($action) {
         case 'hdvIndex':       // danh sách HDV
             $controller->index();
@@ -63,6 +62,7 @@ if (in_array($action, $tourActions)) {
             echo "<h2>Welcome to Tour & HDV Management</h2>";
             echo "<p><a href='index.php?action=listTours'>Xem danh sách tour</a></p>";
             echo "<p><a href='index.php?action=hdvIndex'>Xem danh sách HDV</a></p>";
+            echo "<p><a href='/tour-managenment-php/public/html/index.php/'>Xem danh sách HDV</a></p>";
             break;
     }}
 ?>
