@@ -27,8 +27,7 @@ class BookingController extends BaseController
 
     public function store()
     {
-        // simple validation
-        $user_id = $_POST['user_id'] ?? 1; // for demo, assume user 1
+        $user_id = $_POST['user_id'] ?? 1; 
         $tour_id = $_POST['tour_id'];
         $seats = (int)($_POST['seats_booked'] ?? 1);
 
