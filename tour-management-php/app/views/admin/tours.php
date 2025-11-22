@@ -1,8 +1,10 @@
 <?php 
 // Đảm bảo file header.php chỉ được nhúng một lần
 include_once __DIR__ . '/../../../public/html/header.php'; 
+$base_path = '/Duan1/tour-management-php/public/';
 // Giả định biến $tours đã được controller truyền vào
 // Nếu không có dữ liệu thật, bạn có thể tạo mảng mẫu ở đây để test
+
 ?>
 
 <div class="container">
@@ -36,9 +38,9 @@ include_once __DIR__ . '/../../../public/html/header.php';
                    <td>
                          <?php if (!empty($t['main_image'])): 
 
-                                $full_image_path = $t['main_image']; 
+                                $full_image_url = $base_path . htmlspecialchars($t['main_image']);
                         ?>
-                                    <img src="<?php echo $base_path . htmlspecialchars($full_image_path); ?>" alt="Ảnh Tour" style="width: 80px; height: auto;">
+                                    <img src="<?php echo $full_image_url; ?>" alt="Ảnh Tour" style="width: 80px; height: auto;">
                         <?php else: ?>
                                  N/A
                         <?php endif; ?>
