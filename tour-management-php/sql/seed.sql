@@ -1,4 +1,4 @@
-USE tour_management;
+USE duan1;
 
 -- roles
 INSERT INTO roles (name) VALUES ('ADMIN'), ('GUIDE');

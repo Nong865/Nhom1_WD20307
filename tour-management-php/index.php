@@ -25,19 +25,13 @@ require_once __DIR__ . '/app/controllers/TourController.php';
 $action = $_GET['action'] ?? 'home';
 $controller = null;
 
-<<<<<<< HEAD
 $tourActions = ['listTours','addTourForm','addTour','viewAlbum', 'addPhotoForm', 'addPhoto'];
 
-=======
-// Nếu URL là tour
-$tourActions = ['listTours','addTourForm','addTour'];
->>>>>>> 6057e97e941946d8d762430ca5ddadb9b7aa28d8
 if (in_array($action, $tourActions)) {
     // Nếu TourController cần kết nối, bạn cũng nên truyền $db vào đây:
     // $controller = new TourController($db); 
     $controller = new TourController($db); 
     switch($action) {
-<<<<<<< HEAD
         case 'listTours':
             $controller->listTours();
             break;
@@ -56,43 +50,14 @@ if (in_array($action, $tourActions)) {
         case 'addPhoto': 
             $controller->addPhoto();
             break;
-=======
-           case 'listTours':
-        $controller->listTours();
-        break;
-    case 'addTourForm':
-        $controller->showAddForm();
-        break;
-    case 'addTour':
-        $controller->addTour();
-        break;
-    
-    case 'viewAlbum':
-        $controller->viewAlbum(); 
-    case 'editTour': 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $controller->editTour();
-        } else {
-            $controller->showEditForm(); 
-        }
-        break;
-        
-    case 'deleteTour':
-        $controller->deleteTour();
-        break;
->>>>>>> 6057e97e941946d8d762430ca5ddadb9b7aa28d8
     }
 } else {
     require_once __DIR__ . '/app/controllers/HdvController.php';
-<<<<<<< HEAD
     
     // Đã sửa lỗi: Biến $db đã được định nghĩa và truyền vào Controller
     $controller = new HdvController($db); 
 
 
-=======
-    $controller = new HdvController();
->>>>>>> 6057e97e941946d8d762430ca5ddadb9b7aa28d8
     switch($action) {
         case 'hdvIndex':        
             $controller->index();
@@ -116,7 +81,7 @@ if (in_array($action, $tourActions)) {
             echo "<h2>Welcome to Tour & HDV Management</h2>";
             echo "<p><a href='index.php?action=listTours'>Xem danh sách tour</a></p>";
             echo "<p><a href='index.php?action=hdvIndex'>Xem danh sách HDV</a></p>";
+            echo "<p><a href='/tour-managenment-php/public/html/index.php/'>Xem danh sách HDV</a></p>";
             break;
-    }
-}
+    }}
 ?>
