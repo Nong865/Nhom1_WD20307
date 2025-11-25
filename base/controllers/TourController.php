@@ -8,6 +8,8 @@ class TourController {
 
     public function __construct() {
         $this->tourModel = new TourModel();
+
+
     }
 
     // ----------------------------------------------------------------------
@@ -52,28 +54,51 @@ class TourController {
         include dirname(__DIR__) . "/views/main.php";
     }
 
-    /**
-     * Phương thức hiển thị form thêm mới tour
-     */
+  
     public function add() {
-        $active = 'tour';
+    $active = 'tour';
 
-        $content = render("tours/add", []);
+    // 1. Lấy danh sách Nhân sự (Staff)
+    // Cần cho select box "Hướng dẫn viên"
+    $staffs = $this->tourModel->getAllStaff();
+    
+    // 2. Lấy danh sách Nhà cung cấp (Suppliers)
+    // Cần cho select box "Nhà cung cấp"
+    $suppliers = $this->tourModel->getAllSuppliers();
 
-        include dirname(__DIR__) . "/views/main.php";
-    }
+    // 3. Truyền dữ liệu sang View
+    $content = render("tours/add", [
+        'staffs' => $staffs,     // <--- Bổ sung
+        'suppliers' => $suppliers, // <--- Bổ sung
+        'active' => $active
+    ]);
+
+    include dirname(__DIR__) . "/views/main.php";
+}
 
     /**
      * Phương thức hiển thị form chỉnh sửa tour
      */
     public function edit() {
         $id = $_GET['id'];
+        $active = 'tour';
+         // Lấy tổng số ngày của tour để pre-fill vào form
         $tour = $this->tourModel->find($id);
 
-        $content = render("tours/edit", [
-            'tour' => $tour,
-            'active' => 'tour'
-        ]);
+        $staffs = $this->tourModel->getAllStaff();
+        $suppliers = $this->tourModel->getAllSuppliers();
+
+        $total_days = $this->tourModel->getTotalDays($id);
+
+        
+
+       $content = render("tours/edit", [
+        'tour' => $tour,
+        'staffs' => $staffs,     
+        'suppliers' => $suppliers, 
+        'total_days' => $total_days, 
+        'active' => $active
+    ]);
 
         include dirname(__DIR__) . "/views/main.php";
     }
@@ -81,55 +106,138 @@ class TourController {
     /**
      * Phương thức lưu tour mới
      */
-    public function save() {
-        $img = null;
+// Trong TourController.php
 
-        if (!empty($_FILES['main_image']['name'])) {
-            $name = "tour_img_" . uniqid() . ".jpg";
-            $path = "assets/uploads/" . $name;
-            move_uploaded_file($_FILES['main_image']['tmp_name'], $path);
-            $img = $path;
-        }
+public function save() {
+    $img = null;
 
-        $data = [
-            "name" => $_POST['name'],
-            "price" => $_POST['price'],
-            "description" => $_POST['description'],
-            "start_date" => $_POST['start_date'],
-            "end_date" => $_POST['end_date'],
-            "main_image" => $img
-        ];
-
-        $this->tourModel->insert($data);
-        header("Location: index.php?action=listTours");
+    // --- 1. Xử lý tải lên ảnh (Giữ nguyên) ---
+    if (!empty($_FILES['main_image']['name'])) {
+        $name = "tour_img_" . uniqid() . ".jpg";
+        $path = "assets/uploads/" . $name;
+        move_uploaded_file($_FILES['main_image']['tmp_name'], $path);
+        $img = $path;
     }
 
-    /**
-     * Phương thức cập nhật tour
-     */
-    public function update() {
-        $id = $_POST['id'];
-        $img = $_POST['old_image'];
+    // Lấy dữ liệu thô từ POST
+    $start_date_post = $_POST['start_date'] ?? '';
+    $total_days = (int)($_POST['total_days'] ?? 0);
 
-        if (!empty($_FILES['main_image']['name'])) {
-            $name = "tour_img_" . uniqid() . ".jpg";
-            $path = "assets/uploads/" . $name;
-            move_uploaded_file($_FILES['main_image']['tmp_name'], $path);
-            $img = $path;
+    $end_date = null;
+    $start_date = null;
+
+    // --- 2. LOGIC TÍNH TOÁN NGÀY KẾT THÚC ---
+    if (!empty($start_date_post) && $total_days > 0) {
+        try {
+            $start_date = $start_date_post; // Ngày bắt đầu hợp lệ
+            $end_date_obj = new DateTime($start_date);
+            $end_date_obj->modify('+' . ($total_days - 1) . ' days');
+            $end_date = $end_date_obj->format('Y-m-d');
+        } catch (Exception $e) {
+            $start_date = null; 
+            $end_date = null;
         }
-
-        $data = [
-            "name" => $_POST['name'],
-            "price" => $_POST['price'],
-            "description" => $_POST['description'],
-            "start_date" => $_POST['start_date'],
-            "end_date" => $_POST['end_date'],
-            "main_image" => $img
-        ];
-
-        $this->tourModel->updateTour($id, $data);
-        header("Location: index.php?action=listTours");
+    } else {
+        // KHẮC PHỤC LỖI DATE: Nếu ngày bắt đầu rỗng (''), gán thành null
+        $start_date = empty($start_date_post) ? null : $start_date_post;
     }
+    
+    // --- 3. KHẮC PHỤC LỖI 1366 (Cột INT) ---
+    // Chuyển chuỗi rỗng ('') thành NULL cho staff_id và supplier_id
+    $staff_id = empty($_POST['staff_id']) ? null : $_POST['staff_id'];
+    $supplier_id = empty($_POST['supplier_id']) ? null : $_POST['supplier_id'];
+
+    // --- 4. GÁN DỮ LIỆU ĐỂ LƯU ---
+    $data = [
+        "name" => $_POST['name'],
+        "price" => $_POST['price'],
+        "description" => $_POST['description'],
+        
+        // Dữ liệu ngày tháng đã tính toán/chuẩn hóa
+        "start_date" => $start_date,
+        "end_date" => $end_date, 
+        
+        // Khóa ngoại đã chuẩn hóa
+        "staff_id" => $staff_id,
+        "supplier_id" => $supplier_id,
+        
+        "main_image" => $img
+    ];
+
+    // --- 5. GỌI MODEL VÀ CHUYỂN HƯỚNG ---
+    $this->tourModel->insert($data); 
+    
+    header("Location: index.php?action=listTours");
+}
+  
+
+
+public function update() {
+    $id = $_POST['id'];
+    $img = $_POST['old_image'];
+
+    // --- 1. Xử lý tải lên ảnh (Giữ nguyên) ---
+    if (!empty($_FILES['main_image']['name'])) {
+        $name = "tour_img_" . uniqid() . ".jpg";
+        $path = "assets/uploads/" . $name;
+        move_uploaded_file($_FILES['main_image']['tmp_name'], $path);
+        $img = $path;
+    }
+
+    // Lấy dữ liệu ngày tháng/lịch trình từ POST
+    $start_date_post = $_POST['start_date'] ?? '';
+    // Lấy số ngày lịch trình từ form (Giả sử form edit đã có trường total_days)
+    $total_days = (int)($_POST['total_days'] ?? 0); 
+
+    $end_date = null;
+    $start_date = null;
+
+    // --- 2. LOGIC TÍNH TOÁN VÀ XỬ LÝ LỖI NGÀY THÁNG ---
+    if ($total_days > 0 && !empty($start_date_post)) {
+        try {
+            $start_date = $start_date_post;
+            $end_date_obj = new DateTime($start_date);
+            // Tính Ngày kết thúc: Ngày bắt đầu + (Số ngày - 1)
+            $end_date_obj->modify('+' . ($total_days - 1) . ' days');
+            $end_date = $end_date_obj->format('Y-m-d');
+        } catch (Exception $e) {
+            // Nếu có lỗi parse ngày, gán về NULL để tránh lỗi SQL
+            $start_date = null;
+            $end_date = null;
+        }
+    } else {
+        // Nếu không có total_days hoặc start_date, KHẮC PHỤC LỖI Fatal error: Invalid datetime format
+        $start_date = empty($start_date_post) ? null : $start_date_post;
+        $end_date = null; 
+    }
+    
+    // --- 3. Lấy các khóa ngoại ---
+    $staff_id_post = $_POST['staff_id'] ?? '';
+    $supplier_id_post = $_POST['supplier_id'] ?? '';
+
+    $staff_id = empty($staff_id_post) ? null : $staff_id_post;
+    $supplier_id = empty($supplier_id_post) ? null : $supplier_id_post;
+
+
+    $data = [
+        "name" => $_POST['name'],
+        "price" => $_POST['price'],
+        "description" => $_POST['description'],
+        
+        // SỬ DỤNG GIÁ TRỊ ĐÃ CHUẨN HÓA (NULL hoặc DATE)
+        "start_date" => $start_date, 
+        "end_date" => $end_date, 
+        
+        // SỬ DỤNG CÁC TRƯỜNG MỚI
+        "staff_id" => $staff_id,
+        "supplier_id" => $supplier_id,
+        "main_image" => $img
+    ];
+
+    // --- 4. Gọi Model để cập nhật ---
+    $this->tourModel->updateTour($id, $data); 
+    header("Location: index.php?action=listTours");
+}
 
     /**
      * Phương thức xóa tour
@@ -239,4 +347,75 @@ class TourController {
         // Quay về trang chi tiết lịch trình của tour đó
         header("Location: index.php?action=viewItinerary&id=" . $tour_id);
     }
+
+    public function viewAlbum() {
+        $tour_id = $_GET['id'];
+        $tour = $this->tourModel->find($tour_id); 
+        $photos = $this->tourModel->getAlbumByTourId($tour_id);
+
+        $content = render("tours/album/view", [ 
+            'tour' => $tour,
+            'photos' => $photos
+        ]);
+
+        include dirname(__DIR__) . "/views/main.php";
+    }
+
+    public function addPhoto() {
+        $tour_id = $_GET['tour_id'];
+        $tour = $this->tourModel->find($tour_id);
+
+        $content = render("tours/album/add", [ 
+            'tour' => $tour
+        ]);
+
+        include dirname(__DIR__) . "/views/main.php";
+    }
+
+    public function savePhoto() {
+        $tour_id = $_POST['tour_id'];
+        $caption = $_POST['caption'] ?? '';
+        $img = null;
+
+        // Xử lý upload file
+        if (!empty($_FILES['image_file']['name'])) {
+            $name = "album_img_" . uniqid() . ".jpg";
+            $upload_dir = dirname(__DIR__) . "/assets/uploads/album/";
+            
+            // Đảm bảo thư mục tồn tại
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0777, true);
+            }
+            
+            $path = "assets/uploads/album/" . $name;
+            move_uploaded_file($_FILES['image_file']['tmp_name'], $upload_dir . $name);
+            $img = $path;
+        }
+
+        if ($img) {
+            $data = [
+                "tour_id" => $tour_id,
+                "image_path" => $img,
+                "caption" => $caption
+            ];
+            $this->tourModel->insertPhoto($data);
+        }
+        
+        // Chuyển hướng về trang Album sau khi lưu
+        header("Location: index.php?action=viewAlbum&id=" . $tour_id);
+    }
+
+    public function deletePhoto() {
+        $id = $_GET['id'];
+        $tour_id = $_GET['tour_id'];
+        
+        // Cần thêm logic xóa file vật lý tại đây nếu muốn
+        
+        $this->tourModel->deletePhoto($id);
+        
+        // Chuyển hướng về trang Album
+        header("Location: index.php?action=viewAlbum&id=" . $tour_id);
+    }
+
+    
 }

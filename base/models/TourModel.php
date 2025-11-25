@@ -18,7 +18,7 @@ class TourModel extends BaseModel
             // HDV
             $tour['hdv'] = '';
             if (!empty($tour['staff_id'])) {
-                $stmt2 = $this->pdo->prepare("SELECT name FROM staff WHERE id=?");
+                $stmt2 = $this->pdo->prepare("SELECT ho_ten AS name FROM huong_dan_vien WHERE id=?");
                 $stmt2->execute([$tour['staff_id']]);
                 $staff = $stmt2->fetch(PDO::FETCH_ASSOC);
                 $tour['hdv'] = $staff['name'] ?? '';
@@ -27,7 +27,7 @@ class TourModel extends BaseModel
             // Nhà cung cấp
             $tour['ncc'] = '';
             if (!empty($tour['supplier_id'])) {
-                $stmt3 = $this->pdo->prepare("SELECT name FROM suppliers WHERE id=?");
+                $stmt3 = $this->pdo->prepare("SELECT name FROM 	partners WHERE id=?");
                 $stmt3->execute([$tour['supplier_id']]);
                 $supplier = $stmt3->fetch(PDO::FETCH_ASSOC);
                 $tour['ncc'] = $supplier['name'] ?? '';
@@ -55,7 +55,7 @@ class TourModel extends BaseModel
             // HDV
             $tour['hdv'] = '';
             if (!empty($tour['staff_id'])) {
-                $stmt2 = $this->pdo->prepare("SELECT name FROM staff WHERE id=?");
+                $stmt2 = $this->pdo->prepare("SELECT ho_ten AS name FROM huong_dan_vien WHERE id=?");
                 $stmt2->execute([$tour['staff_id']]);
                 $staff = $stmt2->fetch(PDO::FETCH_ASSOC);
                 $tour['hdv'] = $staff['name'] ?? '';
@@ -64,7 +64,7 @@ class TourModel extends BaseModel
             // Nhà cung cấp
             $tour['ncc'] = '';
             if (!empty($tour['supplier_id'])) {
-                $stmt3 = $this->pdo->prepare("SELECT name FROM suppliers WHERE id=?");
+                $stmt3 = $this->pdo->prepare("SELECT name FROM partners WHERE id=?");
                 $stmt3->execute([$tour['supplier_id']]);
                 $supplier = $stmt3->fetch(PDO::FETCH_ASSOC);
                 $tour['ncc'] = $supplier['name'] ?? '';
@@ -207,4 +207,146 @@ class TourModel extends BaseModel
         $stmt = $this->pdo->prepare("DELETE FROM tour_itineraries WHERE id=?");
         return $stmt->execute([$id]);
     }
+    public function getAlbumByTourId($tourId) 
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT * FROM photos 
+            WHERE tour_id = ? 
+            ORDER BY id ASC
+        ");
+        $stmt->execute([$tourId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Thêm ảnh mới vào Album
+     */
+    public function insertPhoto($data)
+    {
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO photos (tour_id, image_path, caption, created_at) 
+            VALUES (?, ?, ?, NOW())"
+        );
+        return $stmt->execute([
+            $data['tour_id'],
+            $data['image_path'],
+            $data['caption'] ?? null
+        ]);
+    }
+
+    /**
+     * Xóa ảnh khỏi Album
+     */
+   
+
+    public function viewAlbum() {
+        $tour_id = $_GET['id'];
+        $tour = $this->tourModel->find($tour_id); 
+        $photos = $this->tourModel->getAlbumByTourId($tour_id);
+
+        $content = render("tours/album/view", [ 
+            'tour' => $tour,
+            'photos' => $photos
+        ]);
+
+        include dirname(__DIR__) . "/views/main.php";
+    }
+
+    public function addPhoto() {
+        $tour_id = $_GET['tour_id'];
+        $tour = $this->tourModel->find($tour_id);
+
+        $content = render("tours/album/add", [ 
+            'tour' => $tour
+        ]);
+
+        include dirname(__DIR__) . "/views/main.php";
+    }
+
+    public function savePhoto() {
+        $tour_id = $_POST['tour_id'];
+        $caption = $_POST['caption'] ?? '';
+        $img = null;
+
+        // Xử lý upload file
+        if (!empty($_FILES['image_file']['name'])) {
+            $name = "album_img_" . uniqid() . ".jpg";
+            $upload_dir = dirname(__DIR__) . "/assets/uploads/album/";
+            
+            // Đảm bảo thư mục tồn tại
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0777, true);
+            }
+            
+            $path = "assets/uploads/album/" . $name;
+            move_uploaded_file($_FILES['image_file']['tmp_name'], $upload_dir . $name);
+            $img = $path;
+        }
+
+        if ($img) {
+            $data = [
+                "tour_id" => $tour_id,
+                "image_path" => $img,
+                "caption" => $caption
+            ];
+            $this->tourModel->insertPhoto($data);
+        }
+        
+        // Chuyển hướng về trang Album sau khi lưu
+        header("Location: index.php?action=viewAlbum&id=" . $tour_id);
+    }
+
+    public function deletePhoto() {
+        $id = $_GET['id'];
+        $tour_id = $_GET['tour_id'];
+        
+        // Bạn có thể thêm logic xóa file vật lý tại đây nếu muốn
+        
+        $this->tourModel->deletePhoto($id);
+        
+        // Chuyển hướng về trang Album
+        header("Location: index.php?action=viewAlbum&id=" . $tour_id);
+    }
+    /**
+     * Lấy tất cả Nhân sự (Staff) để hiển thị trong select box
+     */
+    public function getAllStaff()
+    {
+        // Giả định tên bảng là 'staff' và cột tên là 'name'
+        $stmt = $this->pdo->prepare("SELECT id, ho_ten AS name FROM huong_dan_vien ORDER BY name ASC");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy tất cả Nhà cung cấp (Suppliers) để hiển thị trong select box
+     */
+    public function getAllSuppliers()
+    {
+        // Giả định tên bảng là 'suppliers' và cột tên là 'name'
+        $stmt = $this->pdo->prepare("SELECT id, name FROM partners ORDER BY name ASC");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy tổng số ngày của một tour
+     * (Cần thiết cho form edit để pre-fill trường total_days)
+     */
+    public function getTotalDays($tourId)
+    {
+        $tour = $this->find($tourId); // Sử dụng hàm find() đã có
+        if ($tour && !empty($tour['start_date']) && !empty($tour['end_date'])) {
+            try {
+                $start = new DateTime($tour['start_date']);
+                $end = new DateTime($tour['end_date']);
+                $interval = $start->diff($end);
+                return $interval->days + 1;
+            } catch (Exception $e) {
+                return 0; // Trả về 0 nếu có lỗi ngày tháng
+            }
+        }
+        return 0;
+    }
+
 }

@@ -145,7 +145,25 @@ switch ($action) {
 
 
     /* ---------- ALBUM TOUR ---------- */
-    // ... (Thiếu route Album, bạn có thể bổ sung sau)
+    case 'viewAlbum': // Hiển thị tất cả ảnh của tour
+        require_once "controllers/TourController.php";
+        (new TourController)->viewAlbum();
+        break;
+        
+    case 'addPhoto': // Form thêm ảnh mới
+        require_once "controllers/TourController.php";
+        (new TourController)->addPhoto();
+        break;
+        
+    case 'savePhoto': // Xử lý lưu ảnh mới (POST)
+        require_once "controllers/TourController.php";
+        (new TourController)->savePhoto();
+        break;
+        
+    case 'deletePhoto': // Xóa ảnh
+        require_once "controllers/TourController.php";
+        (new TourController)->deletePhoto();
+        break;
 
     /* ---------- ROUTE MẶC ĐỊNH ---------- */
     default:

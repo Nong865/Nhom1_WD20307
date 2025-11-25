@@ -21,6 +21,7 @@
         <?php endif; ?>
     </select>
 
+
     <label>Nhà cung cấp:</label>
     <select name="supplier_id" class="form-control">
         <option value="">-- Chọn Nhà cung cấp --</option>
@@ -31,7 +32,8 @@
         <?php endif; ?>
     </select>
 
-
+    <label>Ngày bắt đầu:</label>
+    <input name="start_date" type="date" class="form-control" required>
 
     <label>Lịch trình (Số ngày):</label>
     <input name="total_days" type="number" class="form-control" required min="1" placeholder="Nhập số ngày của tour (Ví dụ: 3)">
