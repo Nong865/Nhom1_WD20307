@@ -11,6 +11,7 @@
     <label>Mô tả:</label>
     <textarea name="description" class="form-control"></textarea>
 
+<<<<<<< HEAD
     <label>Nhân sự (Hướng dẫn viên):</label>
     <select name="staff_id" class="form-control">
         <option value="">-- Chọn Hướng dẫn viên --</option>
@@ -35,9 +36,20 @@
 
     <label>Lịch trình (Số ngày):</label>
     <input name="total_days" type="number" class="form-control" required min="1" placeholder="Nhập số ngày của tour (Ví dụ: 3)">
+=======
+    <label>Ngày bắt đầu:</label>
+    <input name="start_date" type="date" class="form-control">
+
+    <label>Ngày kết thúc:</label>
+    <input name="end_date" type="date" class="form-control">
+>>>>>>> tranhung
 
     <label>Ảnh chính:</label>
     <input type="file" name="main_image" class="form-control">
 
     <button class="btn btn-success mt-3">Lưu tour</button>
+<<<<<<< HEAD
 </form>
+=======
+</form>
+>>>>>>> tranhung

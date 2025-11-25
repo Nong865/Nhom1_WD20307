@@ -18,7 +18,6 @@ class SupplierController
     {
         $suppliers = $this->sup->getAll();
 
-        // Thông tin cho layout
         $title  = "Danh sách Nhà cung cấp";
         $active = "ncc";
 
@@ -29,14 +28,14 @@ class SupplierController
         include __DIR__ . "/../views/main.php";
     }
 
-
     /* ============================================================
         FORM THÊM
     ============================================================ */
     public function add()
     {
-        $types = $this->sup->getTypes();
+        requireRole([1, 4]); // Admin + Supplier Manager
 
+        $types = $this->sup->getTypes();
         $title  = "Thêm Nhà cung cấp";
         $active = "ncc";
 
@@ -50,26 +49,28 @@ class SupplierController
     /* ============================================================
         LƯU NHÀ CUNG CẤP MỚI
     ============================================================ */
-   public function store()
-{
-    $data = $_POST;
+    public function store()
+    {
+        requireRole([1, 4]);
 
-    // --- Chuyển chuỗi rỗng thành NULL cho cột capacity ---
-    $data['capacity'] = ($data['capacity'] === '') ? null : (int)$data['capacity'];
+        $data = $_POST;
 
-    // Gọi model để lưu
-    $this->sup->store($data);
+        // Chuyển chuỗi rỗng thành NULL nếu không nhập capacity
+        $data['capacity'] = ($data['capacity'] === '') ? null : (int)$data['capacity'];
 
-    header("Location: index.php?action=supplierIndex");
-    exit;
-}
+        $this->sup->store($data);
 
+        header("Location: index.php?action=supplierIndex");
+        exit;
+    }
 
     /* ============================================================
         FORM SỬA
     ============================================================ */
     public function edit()
     {
+        requireRole([1, 4]);
+
         $id = $_GET['id'] ?? null;
         if (!$id) die("Thiếu ID nhà cung cấp!");
 
@@ -86,12 +87,13 @@ class SupplierController
         include __DIR__ . "/../views/main.php";
     }
 
-
     /* ============================================================
         CẬP NHẬT NHÀ CUNG CẤP
     ============================================================ */
     public function update()
     {
+        requireRole([1, 4]);
+
         $id = $_POST['id'] ?? null;
         if (!$id) die("Thiếu ID!");
 
@@ -101,12 +103,13 @@ class SupplierController
         exit;
     }
 
-
     /* ============================================================
         XÓA NHÀ CUNG CẤP
     ============================================================ */
     public function delete()
     {
+        requireRole([1, 4]);
+
         $id = $_GET['id'] ?? null;
         if (!$id) die("Thiếu ID!");
 

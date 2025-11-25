@@ -12,37 +12,51 @@
             <th>Nhân sự</th>
             <th>Nhà cung cấp</th>
             <th>Giá</th>
-            <th>Lịch trình</th> <th>Mô tả</th>
+            <th>Lịch trình</th>
+            <th>Mô tả</th>
             <th>Hành động</th>
         </tr>
     </thead>
+
     <tbody>
         <?php foreach($tours as $t): ?>
         <tr>
             <td><?= $t['id'] ?></td>
             <td><?= $t['name'] ?></td>
+
             <td>
                 <?php if($t['main_image']): ?>
                     <img src="<?= $t['main_image'] ?>" width="70">
                 <?php endif; ?>
             </td>
+
             <td>
-                <a class="btn btn-success btn-sm" href="index.php?action=viewAlbum&id=<?= $t['id'] ?>">Xem Album</a>
+                <a class="btn btn-success btn-sm" href="index.php?action=viewAlbum&id=<?= $t['id'] ?>">
+                    Xem Album
+                </a>
             </td>
+
             <td><?= $t['hdv'] ?></td>
             <td><?= $t['ncc'] ?></td>
+
             <td><?= number_format($t['price']) ?> VNĐ</td>
-            
+
             <td>
-                <a href="index.php?action=viewItinerary&id=<?= $t['id'] ?>" class="btn btn-info btn-sm">
+                <a href="index.php?action=viewItinerary&id=<?= $t['id'] ?>" 
+                   class="btn btn-info btn-sm">
                     <?= $t['lich_trinh'] ?> (Xem)
                 </a>
             </td>
-            
+
             <td><?= $t['description'] ?></td>
+
             <td>
-                <a class="btn btn-warning btn-sm" href="index.php?action=editTour&id=<?= $t['id'] ?>">Sửa</a>
-                <a class="btn btn-danger btn-sm" onclick="return confirm('Xóa?')" href="index.php?action=deleteTour&id=<?= $t['id'] ?>">Xóa</a>
+                <a class="btn btn-warning btn-sm" 
+                   href="index.php?action=editTour&id=<?= $t['id'] ?>">Sửa</a>
+
+                <a class="btn btn-danger btn-sm"
+                   onclick="return confirm('Xóa?')"
+                   href="index.php?action=deleteTour&id=<?= $t['id'] ?>">Xóa</a>
             </td>
         </tr>
         <?php endforeach; ?>

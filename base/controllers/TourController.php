@@ -1,5 +1,6 @@
 <?php
-require_once dirname(__DIR__) . '/configs/helper.php'; 
+
+require_once dirname(__DIR__) . '/configs/helper.php';
 require_once dirname(__DIR__) . '/models/TourModel.php';
 
 class TourController {
@@ -10,31 +11,23 @@ class TourController {
         $this->tourModel = new TourModel();
     }
 
-    // ----------------------------------------------------------------------
-    // PHƯƠNG THỨC QUẢN LÝ TOUR (Tour CRUD)
-    // ----------------------------------------------------------------------
-
-    /**
-     * Phương thức hiển thị danh sách tours (Đã cập nhật logic tính Số ngày)
-     */
+    // =======================================================
+    // HIỂN THỊ DANH SÁCH TOUR + TÍNH LỊCH TRÌNH (SỐ NGÀY)
+    // =======================================================
     public function index() {
         $tours = $this->tourModel->getAll();
         $active = 'tour';
 
-        // LOGIC TÍNH TOÁN SỐ NGÀY TOUR (Lịch trình)
+        // Tính số ngày tour
         foreach ($tours as $key => $tour) {
-            // Sử dụng cú pháp MẢNG ($tour['...'])
             if (!empty($tour['start_date']) && !empty($tour['end_date'])) {
                 try {
                     $start = new DateTime($tour['start_date']);
                     $end = new DateTime($tour['end_date']);
-                    
                     $interval = $start->diff($end);
-                    $so_ngay = $interval->days + 1; 
-                    
-                    // GÁN TRƯỜNG 'lich_trinh' VÀO MẢNG GỐC
-                    $tours[$key]['lich_trinh'] = $so_ngay . ' ngày'; 
+                    $so_ngay = $interval->days + 1;
 
+                    $tours[$key]['lich_trinh'] = $so_ngay . ' ngày';
                 } catch (Exception $e) {
                     $tours[$key]['lich_trinh'] = 'Lỗi ngày tháng';
                 }
@@ -42,7 +35,6 @@ class TourController {
                 $tours[$key]['lich_trinh'] = 'Chưa xác định';
             }
         }
-        // KẾT THÚC LOGIC TÍNH TOÁN
 
         $content = render("tours/list", [
             'tours' => $tours,
@@ -52,21 +44,24 @@ class TourController {
         include dirname(__DIR__) . "/views/main.php";
     }
 
-    /**
-     * Phương thức hiển thị form thêm mới tour
-     */
+    // =======================================================
+    // FORM THÊM TOUR
+    // =======================================================
     public function add() {
-        $active = 'tour';
+        requireRole([1, 4]);
 
-        $content = render("tours/add", []);
+        $active = 'tour';
+        $content = render("tours/add");
 
         include dirname(__DIR__) . "/views/main.php";
     }
 
-    /**
-     * Phương thức hiển thị form chỉnh sửa tour
-     */
+    // =======================================================
+    // FORM SỬA TOUR
+    // =======================================================
     public function edit() {
+        requireRole([1, 4]);
+
         $id = $_GET['id'];
         $tour = $this->tourModel->find($id);
 
@@ -78,10 +73,12 @@ class TourController {
         include dirname(__DIR__) . "/views/main.php";
     }
 
-    /**
-     * Phương thức lưu tour mới
-     */
+    // =======================================================
+    // LƯU TOUR MỚI
+    // =======================================================
     public function save() {
+        requireRole([1, 4]);
+
         $img = null;
 
         if (!empty($_FILES['main_image']['name'])) {
@@ -101,13 +98,16 @@ class TourController {
         ];
 
         $this->tourModel->insert($data);
+
         header("Location: index.php?action=listTours");
     }
 
-    /**
-     * Phương thức cập nhật tour
-     */
+    // =======================================================
+    // CẬP NHẬT TOUR
+    // =======================================================
     public function update() {
+        requireRole([1, 4]);
+
         $id = $_POST['id'];
         $img = $_POST['old_image'];
 
@@ -128,31 +128,32 @@ class TourController {
         ];
 
         $this->tourModel->updateTour($id, $data);
+
         header("Location: index.php?action=listTours");
     }
 
-    /**
-     * Phương thức xóa tour
-     */
+    // =======================================================
+    // XÓA TOUR
+    // =======================================================
     public function delete() {
+        requireRole([1, 4]);
+
         $id = $_GET['id'];
         $this->tourModel->delete($id);
+
         header("Location: index.php?action=listTours");
     }
-    
-    // ----------------------------------------------------------------------
-    // PHƯƠNG THỨC QUẢN LÝ LỊCH TRÌNH CHI TIẾT (Itinerary CRUD)
-    // ----------------------------------------------------------------------
 
-    /**
-     * Hiển thị chi tiết Lịch trình của một Tour
-     */
+    // =======================================================
+    // LỊCH TRÌNH TOUR (ITINERARY)
+    // =======================================================
+
     public function viewItinerary() {
         $tour_id = $_GET['id'];
         $tour = $this->tourModel->find($tour_id);
         $itineraries = $this->tourModel->getItineraryByTourId($tour_id);
 
-        $content = render("tours/itineraries/itinerary_detail", [ // ĐƯỜNG DẪN MỚI
+        $content = render("tours/itineraries/itinerary_detail", [
             'tour' => $tour,
             'itineraries' => $itineraries
         ]);
@@ -160,14 +161,11 @@ class TourController {
         include dirname(__DIR__) . "/views/main.php";
     }
 
-    /**
-     * Hiển thị form thêm mới một mục Lịch trình
-     */
     public function addItinerary() {
         $tour_id = $_GET['tour_id'];
         $tour = $this->tourModel->find($tour_id);
-        
-        $content = render("tours/itineraries/add", [ // ĐƯỜNG DẪN MỚI
+
+        $content = render("tours/itineraries/add", [
             'tour' => $tour,
             'active' => 'tour'
         ]);
@@ -175,33 +173,27 @@ class TourController {
         include dirname(__DIR__) . "/views/main.php";
     }
 
-    /**
-     * Xử lý lưu mục Lịch trình mới
-     */
     public function saveItinerary() {
         $tour_id = $_POST['tour_id'];
 
         $data = [
-            "tour_id"    => $tour_id,
+            "tour_id" => $tour_id,
             "day_number" => $_POST['day_number'],
-            "title"      => $_POST['title'],
-            "details"    => $_POST['details']
+            "title" => $_POST['title'],
+            "details" => $_POST['details']
         ];
 
         $this->tourModel->insertItinerary($data);
-        // Quay về trang chi tiết lịch trình của tour đó
+
         header("Location: index.php?action=viewItinerary&id=" . $tour_id);
     }
 
-    /**
-     * Hiển thị form chỉnh sửa một mục Lịch trình
-     */
     public function editItinerary() {
-        $id = $_GET['id']; // ID của mục lịch trình
+        $id = $_GET['id'];
         $item = $this->tourModel->findItinerary($id);
         $tour = $this->tourModel->find($item['tour_id']);
 
-        $content = render("tours/itineraries/edit", [ // ĐƯỜNG DẪN MỚI
+        $content = render("tours/itineraries/edit", [
             'item' => $item,
             'tour' => $tour,
             'active' => 'tour'
@@ -210,33 +202,27 @@ class TourController {
         include dirname(__DIR__) . "/views/main.php";
     }
 
-    /**
-     * Xử lý cập nhật mục Lịch trình
-     */
     public function updateItinerary() {
-        $id = $_POST['id']; // ID của mục lịch trình
+        $id = $_POST['id'];
         $tour_id = $_POST['tour_id'];
 
         $data = [
             "day_number" => $_POST['day_number'],
-            "title"      => $_POST['title'],
-            "details"    => $_POST['details']
+            "title" => $_POST['title'],
+            "details" => $_POST['details']
         ];
 
         $this->tourModel->updateItinerary($id, $data);
-        // Quay về trang chi tiết lịch trình của tour đó
+
         header("Location: index.php?action=viewItinerary&id=" . $tour_id);
     }
 
-    /**
-     * Xử lý xóa mục Lịch trình
-     */
     public function deleteItinerary() {
-        $id = $_GET['id']; // ID của mục lịch trình
-        $tour_id = $_GET['tour_id']; // ID của tour (để tiện redirect)
+        $id = $_GET['id'];
+        $tour_id = $_GET['tour_id'];
 
         $this->tourModel->deleteItinerary($id);
-        // Quay về trang chi tiết lịch trình của tour đó
+
         header("Location: index.php?action=viewItinerary&id=" . $tour_id);
     }
 }
