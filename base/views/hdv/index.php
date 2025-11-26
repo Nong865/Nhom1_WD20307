@@ -23,6 +23,7 @@
             <th>Ngôn ngữ</th>
             <th>Kinh nghiệm</th>
             <th>Đánh giá</th>
+            <th>vai trò</th>
             <th>Hành động</th>
         </tr>
     </thead>
@@ -34,6 +35,7 @@
             <td><?= $row['ho_ten'] ?></td>
             <td><?= $row['nhom'] ?></td>
             <td><?= $row['ngon_ngu'] ?></td>
+            <td><?= $row['nam_kinh_nghiem'] ?> năm</td>
             <td><?= $row['nam_kinh_nghiem'] ?> năm</td>
             <td><?= $row['danh_gia'] ?>/5</td>
             <td>

@@ -9,6 +9,10 @@ require_once "controllers/UserController.php";
 require_once "controllers/HdvController.php";
 require_once "controllers/TourController.php";
 require_once "controllers/SupplierController.php";
+require_once "controllers/TourOperationController.php";
+
+/* Instance controller cho phần Operation */
+$operation = new TourOperationController();
 
 /* Action hiện tại */
 $action = $_GET['action'] ?? 'login';
@@ -21,24 +25,25 @@ if (!in_array($action, ['login', 'doLogin'])) {
 /* ===========================
     ROUTER CHÍNH
 =========================== */
+
 switch ($action) {
 
     /* ====== AUTH ====== */
-    case "login":
-        (new AuthController())->showLogin();
+    case "login": 
+        (new AuthController())->showLogin(); 
         break;
 
-    case "doLogin":
-        (new AuthController())->login();
+    case "doLogin": 
+        (new AuthController())->login(); 
         break;
 
-    case "logout":
-        (new AuthController())->logout();
+    case "logout": 
+        (new AuthController())->logout(); 
         break;
 
     /* ====== HOME ====== */
-    case "/":
-        (new HomeController())->index();
+    case "/": 
+        (new HomeController())->index(); 
         break;
 
     /* ====== HDV ====== */
@@ -50,13 +55,17 @@ switch ($action) {
     case "hdvDelete": (new HdvController())->delete(); break;
     case "filler": (new HdvController())->filler(); break;
 
-    /* ====== TOUR ====== */
+    /* ====== TOUR CRUD ====== */
     case "listTours": (new TourController())->index(); break;
     case "addTour": (new TourController())->add(); break;
     case "saveTour": (new TourController())->save(); break;
     case "editTour": (new TourController())->edit(); break;
     case "updateTour": (new TourController())->update(); break;
     case "deleteTour": (new TourController())->delete(); break;
+   case "tourCategory":
+    (new TourController())->category();
+    break;
+
 
     /* ====== TOUR – ITINERARY ====== */
     case "viewItinerary": (new TourController())->viewItinerary(); break;
@@ -81,6 +90,25 @@ switch ($action) {
     case "userEdit": (new UserController())->edit(); break;
     case "userUpdate": (new UserController())->update(); break;
     case "userDelete": (new UserController())->delete(); break;
+
+    /* ======================================
+        TOUR OPERATION – LỊCH KHỞI HÀNH
+    ======================================= */
+    case "listSchedules":
+        $operation->listSchedules();
+        break;
+
+    case "createFullSchedule":
+        $operation->createFullScheduleForm();
+        break;
+
+    case "storeFullSchedule":
+        $operation->storeFullSchedule();
+        break;
+
+    case "deleteSchedule":
+        $operation->deleteSchedule();
+        break;
 
     /* ====== ROUTE DEFAULT ====== */
     default:
