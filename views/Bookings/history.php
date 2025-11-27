@@ -1,7 +1,4 @@
 <?php
-// Giả định $history là mảng dữ liệu lịch sử trạng thái được Controller truyền sang
-// require_once __DIR__ . '/../../models/BookingHistory.php';
-// $history = BookingHistory::findByBookingId($_GET['id']); 
 
 $bookingId = htmlspecialchars($_GET['id'] ?? 'N/A');
 ?>
