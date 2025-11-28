@@ -3,57 +3,50 @@ require_once "BaseModel.php";
 
 class Booking extends BaseModel
 {
-    protected $table = 'bookings'; // tên bảng chính
+    protected $table = 'bookings';
 
-    public $id;
-    public $customer_id;
-    public $tour_name;
-    public $booking_date;
-    public $status;
-
-    public function __construct()
-    {
-        parent::__construct(); // quan trọng: khởi tạo PDO
-    }
-
-    // Lấy tất cả booking, kèm tên khách hàng
+    // Lấy tất cả booking
     public function getAll()
     {
-        $sql = "SELECT b.*, c.name AS customer_name 
-                FROM {$this->table} b
-                JOIN customers c ON b.customer_id = c.id
-                ORDER BY b.booking_date DESC";
+        $sql = "SELECT * FROM {$this->table} ORDER BY booking_date DESC";
         return $this->queryAll($sql);
     }
 
-    // Tạo booking mới
+    // Tạo booking mới (cả khách lẻ và đoàn)
     public function createBooking($data)
     {
+        // $data phải có: customer_name, customer_phone, quantity, tour_name, tour_date, special_request, status, type, booking_date
         return $this->insert($data);
     }
 
-    // Cập nhật trạng thái booking và lưu lịch sử
-    public function updateStatus($booking_id, $new_status)
+    // Cập nhật trạng thái booking
+    public function updateStatus($id, $new_status)
     {
         // Lấy trạng thái cũ
         $sql = "SELECT status FROM {$this->table} WHERE id = ?";
-        $stmt = $this->query($sql, [$booking_id]);
-        $old_status = $stmt->fetchColumn();
+        $old_status = $this->query($sql, [$id])->fetchColumn();
 
-        if ($old_status != $new_status) {
-            // Cập nhật trạng thái
-            $this->update($booking_id, ['status' => $new_status]);
+        if ($old_status !== $new_status) {
 
-            // Lưu lịch sử thay đổi
-            $sqlHistory = "INSERT INTO booking_status_history (booking_id, old_status, new_status) VALUES (?, ?, ?)";
-            $this->insertRaw($sqlHistory, [$booking_id, $old_status, $new_status]);
+            // Lưu lịch sử
+            $historySQL = "
+                INSERT INTO booking_status_history (booking_id, old_status, new_status)
+                VALUES (?, ?, ?)
+            ";
+            $this->insertRaw($historySQL, [$id, $old_status, $new_status]);
+
+            // Cập nhật trạng thái mới
+            $this->update($id, ['status' => $new_status]);
         }
     }
 
-    // Lấy lịch sử thay đổi trạng thái
+    // Lấy lịch sử trạng thái của booking
     public function getStatusHistory($booking_id)
     {
-        $sql = "SELECT * FROM booking_status_history WHERE booking_id = ? ORDER BY changed_at DESC";
+        $sql = "SELECT * FROM booking_status_history
+                WHERE booking_id = ?
+                ORDER BY changed_at DESC";
+
         return $this->queryAll($sql, [$booking_id]);
     }
 }
