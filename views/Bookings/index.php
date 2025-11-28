@@ -43,6 +43,8 @@
                     <th>Loại</th>
                     <th>Số lượng</th>
                     <th>Tour</th>
+                    <th>Nhân viên</th>
+                    <th>Nhà cung cấp</th> 
                     <th>Ngày tour</th>
                     <th>Ngày đặt</th>
                     <th>Trạng thái</th>
@@ -60,6 +62,11 @@
                         <td><?= htmlspecialchars($b['type'] ?? 'N/A') ?></td>
                         <td><?= htmlspecialchars($b['quantity']) ?></td>
                         <td><?= htmlspecialchars($b['tour_name']) ?></td>
+                        
+                        <td><?= htmlspecialchars($b['staff_name'] ?? 'Chưa chỉ định') ?></td> 
+                        
+                        <td><?= htmlspecialchars($b['supplier_name'] ?? 'N/A') ?></td> 
+                        
                         <td><?= htmlspecialchars($b['tour_date']) ?></td>
                         <td><?= htmlspecialchars($b['booking_date']) ?></td>
                         <td>
@@ -93,7 +100,7 @@
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="10" class="text-center text-muted py-3">
+                    <td colspan="12" class="text-center text-muted py-3">
                         Không có booking nào.
                     </td>
                 </tr>

@@ -4,14 +4,14 @@ $bookingId = htmlspecialchars($_GET['id'] ?? 'N/A');
 // Đảm bảo $history tồn tại và là mảng
 $history = isset($history) && is_array($history) ? $history : [];
 
-// Hàm xác định class badge cho trạng thái mới
+// Hàm xác định class badge cho trạng thái mới (và cũ)
 function getStatusBadgeClass($status) {
     return match ($status) {
-        'Hoàn tất' => 'bg-success',
-        'Đã cọc' => 'bg-info text-dark',
-        'Chờ xác nhận' => 'bg-warning text-dark',
-        'Hủy' => 'bg-danger',
-        default => 'bg-primary'
+        'Hoàn tất'      => 'bg-success',
+        'Đã cọc'        => 'bg-info text-dark',
+        'Chờ xác nhận'  => 'bg-warning text-dark',
+        'Hủy'           => 'bg-danger',
+        default         => 'bg-primary' // Dùng bg-primary hoặc bg-secondary cho trạng thái mặc định
     };
 }
 ?>
@@ -46,7 +46,7 @@ function getStatusBadgeClass($status) {
                             <td class="text-center"><?= htmlspecialchars($h['changed_at']) ?></td>
                             
                             <td class="text-center">
-                                <span class="badge bg-secondary">
+                                <span class="badge <?= getStatusBadgeClass($h['old_status']) ?>">
                                     <?= htmlspecialchars($h['old_status']) ?>
                                 </span>
                             </td>

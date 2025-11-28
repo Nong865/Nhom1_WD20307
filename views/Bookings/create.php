@@ -23,19 +23,44 @@
 
             <form method="post" action="index.php?action=bookingStore">
 
-                <!-- TÊN KHÁCH -->
                 <div class="mb-3">
                     <label class="form-label">Tên khách hàng</label>
                     <input type="text" class="form-control" name="customer_name" required>
                 </div>
 
-                <!-- SỐ ĐIỆN THOẠI -->
                 <div class="mb-3">
                     <label class="form-label">Số điện thoại</label>
                     <input type="text" class="form-control" name="customer_phone" required>
                 </div>
-
-                <!-- LOẠI KHÁCH -->
+                
+                <div class="mb-3">
+                    <label class="form-label">Nhân viên phụ trách</label>
+                    <select class="form-select" name="staff_id" required>
+                        <option value="">-- Chọn Nhân viên --</option>
+                        <?php if (!empty($staffs)): ?>
+                            <?php foreach ($staffs as $staff): ?>
+                                <option value="<?= htmlspecialchars($staff['id']) ?>">
+                                    <?= htmlspecialchars($staff['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Nhà cung cấp liên quan</label>
+                    <select class="form-select" name="supplier_id">
+                        <option value="">-- Không có/Chọn Nhà cung cấp --</option>
+                        <?php if (!empty($suppliers)): ?>
+                            <?php foreach ($suppliers as $supplier): ?>
+                                <option value="<?= htmlspecialchars($supplier['id']) ?>">
+                                    <?= htmlspecialchars($supplier['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                </div>
+                
                 <div class="mb-3">
                     <label class="form-label">Loại khách</label>
                     <div class="form-check">
@@ -48,25 +73,21 @@
                     </div>
                 </div>
 
-                <!-- SỐ LƯỢNG -->
                 <div class="mb-3">
                     <label class="form-label">Số lượng người</label>
                     <input type="number" class="form-control" name="quantity" id="quantity" min="1" value="1" readonly required>
                 </div>
 
-                <!-- TÊN TOUR -->
                 <div class="mb-3">
                     <label class="form-label">Tên tour</label>
                     <input type="text" class="form-control" name="tour_name" required>
                 </div>
 
-                <!-- NGÀY TOUR -->
                 <div class="mb-3">
                     <label class="form-label">Ngày khởi hành</label>
                     <input type="date" class="form-control" name="tour_date" required>
                 </div>
 
-                <!-- YÊU CẦU ĐẶC BIỆT -->
                 <div class="mb-3">
                     <label class="form-label">Yêu cầu đặc biệt</label>
                     <textarea class="form-control" name="special_request" rows="3"></textarea>
