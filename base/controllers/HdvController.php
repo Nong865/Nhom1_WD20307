@@ -11,35 +11,33 @@ class HdvController
     }
 
     public function index()
-{
-     requireRole([1, 2]);
-    $title = "Danh sách HDV";
-    $active = "hdv";
+    {
+        requireRole([1, 2]); // Admin + User Manager
 
-    // Lấy tất cả nhóm để hiển thị dropdown
-    $groups = $this->hdv->getGroups();
+        $title = "Danh sách HDV";
+        $active = "hdv";
 
-    // Lấy giá trị filter từ GET
-    $groupFilter = $_GET['group'] ?? null;
+        $groups = $this->hdv->getGroups();
+        $groupFilter = $_GET['group'] ?? null;
 
-    if ($groupFilter) {
-        $data = $this->hdv->getAllByGroup($groupFilter);
-    } else {
-        $data = $this->hdv->getAllWithGroups();
+        if ($groupFilter) {
+            $data = $this->hdv->getAllByGroup($groupFilter);
+        } else {
+            $data = $this->hdv->getAllWithGroups();
+        }
+
+        ob_start();
+        include "views/hdv/index.php";
+        $content = ob_get_clean();
+
+        include "views/main.php";
     }
-
-    ob_start();
-    include "views/hdv/index.php";
-    $content = ob_get_clean();
-
-    include "views/main.php";
-}
 
     public function create()
     {
-         requireRole([1, 2]);
+        requireRole([1, 2]);
+
         $title = "Thêm nhân viên";
-        
         $active = "hdv";
 
         $groups = $this->hdv->getGroups();
@@ -53,6 +51,8 @@ class HdvController
 
     public function store()
     {
+        requireRole([1, 2]);
+
         $data = [
             "ho_ten" => $_POST['ho_ten'],
             "ngay_sinh" => $_POST['ngay_sinh'],
@@ -66,7 +66,6 @@ class HdvController
             "ghi_chu" => $_POST['ghi_chu'],
         ];
 
-        // Upload ảnh
         if (!empty($_FILES['anh']['name'])) {
             $filename = time() . "_" . $_FILES['anh']['name'];
             move_uploaded_file($_FILES['anh']['tmp_name'], "assets/uploads/" . $filename);
@@ -74,7 +73,6 @@ class HdvController
         }
 
         $id = $this->hdv->insert($data);
-
         $this->hdv->saveGroups($id, $_POST['groups'] ?? []);
 
         header("Location: index.php?action=hdvIndex");
@@ -82,9 +80,9 @@ class HdvController
 
     public function edit()
     {
-         requireRole([1, 2]);
-        $id = $_GET['id'];
+        requireRole([1, 2]);
 
+        $id = $_GET['id'];
         $title = "Sửa thông tin HDV";
         $active = "hdv";
 
@@ -101,7 +99,8 @@ class HdvController
 
     public function update()
     {
-         
+        requireRole([1, 2]);
+
         $id = $_POST['id'];
 
         $data = [
@@ -124,7 +123,6 @@ class HdvController
         }
 
         $this->hdv->update($id, $data);
-
         $this->hdv->saveGroups($id, $_POST['groups'] ?? []);
 
         header("Location: index.php?action=hdvIndex");
@@ -132,36 +130,34 @@ class HdvController
 
     public function delete()
     {
-         requireRole([1, 2]);
+        requireRole([1, 2]);
+
         $id = $_GET['id'];
         $this->hdv->delete($id);
 
         header("Location: index.php?action=hdvIndex");
     }
+
     public function filler()
-{
-    $title = "Danh sách HDV";
-    $active = "hdv";
+    {
+        requireRole([1, 2]); // nếu muốn ai cũng xem được thì XÓA dòng này
 
-    // Lấy tất cả nhóm để hiển thị filter
-    $groups = $this->hdv->getGroups();
+        $title = "Danh sách HDV";
+        $active = "hdv";
 
-    // Lấy giá trị filter từ GET
-    $groupFilter = $_GET['group'] ?? null;
+        $groups = $this->hdv->getGroups();
+        $groupFilter = $_GET['group'] ?? null;
 
-    if ($groupFilter) {
-        // Lấy HDV theo nhóm
-        $data = $this->hdv->getAllByGroup($groupFilter);
-    } else {
-        // Lấy tất cả HDV
-        $data = $this->hdv->getAllWithGroups();
+        if ($groupFilter) {
+            $data = $this->hdv->getAllByGroup($groupFilter);
+        } else {
+            $data = $this->hdv->getAllWithGroups();
+        }
+
+        ob_start();
+        include "views/hdv/index.php";
+        $content = ob_get_clean();
+
+        include "views/main.php";
     }
-
-    ob_start();
-    include "views/hdv/index.php";
-    $content = ob_get_clean();
-
-    include "views/main.php";
-}
-
 }

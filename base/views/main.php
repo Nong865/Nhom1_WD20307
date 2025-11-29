@@ -1,10 +1,10 @@
 <?php
+// Xử lý session cho phần kiểm tra quyền
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 $currentUser = $_SESSION['user'] ?? null;
 ?>
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -49,35 +49,39 @@ $currentUser = $_SESSION['user'] ?? null;
     <h5 class="text-center mb-4">QUẢN LÝ TOUR DU LỊCH</h5>
     <nav class="nav flex-column">
 
+        <!-- QUẢN LÝ TOUR -->
         <a class="nav-link <?= ($active ?? '') == 'tour' ? 'active' : '' ?>" 
-           href="index.php?action=listTours">Danh Mục tour</a>
+           href="index.php?action=listTours">Danh mục tour</a>
 
+        <!-- NHÀ CUNG CẤP -->
         <a class="nav-link <?= ($active ?? '') == 'ncc' ? 'active' : '' ?>" 
            href="index.php?action=supplierIndex">Nhà cung cấp</a>
 
+        <!-- HDV / NHÂN VIÊN -->
         <a class="nav-link <?= ($active ?? '') == 'hdv' ? 'active' : '' ?>" 
-           href="index.php?action=hdvIndex">Nhân Viên</a>
+           href="index.php?action=hdvIndex">Nhân viên</a>
 
-        <!-- CHỈ ADMIN (role_id = 1) MỚI XEM ĐƯỢC -->
-       <?php if ($currentUser && $currentUser['role_id'] == 1): ?>
-    <a class="nav-link" href="index.php?action=userIndex">Tài khoản</a>
-    <?php endif; ?>
+        <!-- CHỈ ADMIN (role_id = 1) MỚI ĐƯỢC QUẢN LÝ TÀI KHOẢN -->
+        <?php if ($currentUser && $currentUser['role_id'] == 1): ?>
+            <a class="nav-link <?= ($active ?? '') == 'user' ? 'active' : '' ?>" 
+               href="index.php?action=userIndex">Tài khoản</a>
+        <?php endif; ?>
 
-
+        <!-- ĐĂNG XUẤT -->
         <a class="nav-link text-danger" href="index.php?action=logout">Đăng xuất</a>
+
     </nav>
 </div>
-
 
 <div class="content">
     <?php 
         if (isset($content)) {
 
-            // Nếu $content là file → require
+            // Nếu $content là file path → require file
             if (is_string($content) && file_exists($content)) {
                 require $content;
-            } 
-            // Nếu là nội dung HTML (render) → echo
+            }
+            // Nếu là HTML đã render → echo
             else {
                 echo $content;
             }
@@ -87,8 +91,6 @@ $currentUser = $_SESSION['user'] ?? null;
         }
     ?>
 </div>
-
-
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
