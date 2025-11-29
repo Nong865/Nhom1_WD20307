@@ -82,7 +82,7 @@ class TourModel extends BaseModel
     /**
      * Thêm tour mới
      */
-    public function insert($data)
+    public function insert($data, $tableName = null)
     {
         $stmt = $this->pdo->prepare(
             "INSERT INTO {$this->table} 
