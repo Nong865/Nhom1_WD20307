@@ -24,11 +24,12 @@
         // Hàm xác định class badge theo trạng thái
         function getStatusBadgeClass($status) {
             return match($status) {
-                'Hoàn tất'      => 'bg-success',
-                'Đã cọc'        => 'bg-info text-dark',
-                'Chờ xác nhận'  => 'bg-warning text-dark',
-                'Hủy'           => 'bg-danger',
-                default         => 'bg-secondary',
+                'Hoàn thành' => 'bg-success', // Thay 'Hoàn tất' thành 'Hoàn thành' cho đồng bộ
+                'Đã xác nhận' => 'bg-primary', 
+                'Đã cọc'=> 'bg-info text-dark',
+                'Chờ xác nhận' => 'bg-warning text-dark',
+                'Đã hủy' => 'bg-danger', // Thay 'Hủy' thành 'Đã hủy' cho đồng bộ
+                default => 'bg-secondary',
             };
         }
     ?>
@@ -62,11 +63,8 @@
                         <td><?= htmlspecialchars($b['type'] ?? 'N/A') ?></td>
                         <td><?= htmlspecialchars($b['quantity']) ?></td>
                         <td><?= htmlspecialchars($b['tour_name']) ?></td>
-                        
                         <td><?= htmlspecialchars($b['staff_name'] ?? 'Chưa chỉ định') ?></td> 
-                        
                         <td><?= htmlspecialchars($b['supplier_name'] ?? 'N/A') ?></td> 
-                        
                         <td><?= htmlspecialchars($b['tour_date']) ?></td>
                         <td><?= htmlspecialchars($b['booking_date']) ?></td>
                         <td>
@@ -79,7 +77,7 @@
                                 <input type="hidden" name="id" value="<?= htmlspecialchars($b['id']) ?>">
                                 <select name="status" class="form-select form-select-sm">
                                     <?php 
-                                    $statuses = ['Chờ xác nhận', 'Đã cọc', 'Hoàn tất', 'Hủy'];
+                                    $statuses = ['Chờ xác nhận', 'Đã xác nhận', 'Đã hủy', 'Hoàn thành', 'Đã cọc'];
                                     foreach ($statuses as $status): ?>
                                         <option value="<?= $status ?>" <?= ($b['status'] == $status) ? 'selected' : '' ?>>
                                             <?= $status ?>

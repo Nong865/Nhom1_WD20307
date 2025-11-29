@@ -1,17 +1,25 @@
 <?php
+// Lấy Booking ID từ URL, sử dụng N/A nếu không tồn tại
 $bookingId = htmlspecialchars($_GET['id'] ?? 'N/A');
 
-// Đảm bảo $history tồn tại và là mảng
-$history = isset($history) && is_array($history) ? $history : [];
+// Đảm bảo $history tồn tại và là mảng, nếu không sẽ là mảng rỗng
+$history = $history ?? [];
 
-// Hàm xác định class badge cho trạng thái mới (và cũ)
+
 function getStatusBadgeClass($status) {
+    if ($status === null || $status === '') {
+        // Trường hợp trạng thái cũ là NULL (bản ghi lịch sử đầu tiên)
+        return 'bg-secondary';
+    }
+    
+    // Sử dụng match cho các trạng thái cụ thể
     return match ($status) {
-        'Hoàn tất'      => 'bg-success',
-        'Đã cọc'        => 'bg-info text-dark',
-        'Chờ xác nhận'  => 'bg-warning text-dark',
-        'Hủy'           => 'bg-danger',
-        default         => 'bg-primary' // Dùng bg-primary hoặc bg-secondary cho trạng thái mặc định
+        'Hoàn thành' => 'bg-success', 
+        'Đã xác nhận'  => 'bg-primary', 
+        'Đã cọc' => 'bg-info text-dark',
+        'Chờ xác nhận' => 'bg-warning text-dark',
+        'Đã hủy' => 'bg-danger', 
+        default  => 'bg-secondary' 
     };
 }
 ?>
@@ -28,7 +36,7 @@ function getStatusBadgeClass($status) {
     
 <div class="container mt-5">
     
-    <h1 class="mb-4 text-primary">Lịch sử trạng thái Booking #<?= $bookingId ?></h1>
+    <h1 class="mb-4 text-primary">📑 Lịch sử trạng thái Booking #<?= $bookingId ?></h1>
     
     <div class="table-responsive">
         <table class="table table-bordered table-hover align-middle">
@@ -46,8 +54,12 @@ function getStatusBadgeClass($status) {
                             <td class="text-center"><?= htmlspecialchars($h['changed_at']) ?></td>
                             
                             <td class="text-center">
+                                <?php 
+                                    $oldStatus = htmlspecialchars($h['old_status']);
+                                    $oldStatusDisplay = $h['old_status'] ?? '--- Khởi tạo ---'; 
+                                ?>
                                 <span class="badge <?= getStatusBadgeClass($h['old_status']) ?>">
-                                    <?= htmlspecialchars($h['old_status']) ?>
+                                    <?= $oldStatusDisplay ?>
                                 </span>
                             </td>
 

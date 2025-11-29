@@ -4,16 +4,10 @@ require_once "BaseModel.php";
 class Booking extends BaseModel
 {
     protected $table = 'bookings';
-    protected $staffTable = 'staff'; // Tên bảng nhân sự
-    protected $supplierTable = 'suppliers'; // Tên bảng nhà cung cấp
+    protected $staffTable = 'staff';
+    protected $supplierTable = 'suppliers';
+    protected $historyTable = 'booking_history'; 
 
-    // ... (Giữ nguyên các thuộc tính khác)
-
-    /**
-     * Lấy tất cả booking, join với staff và suppliers để lấy tên.
-     * Giả định: bảng bookings có cột staff_id và supplier_id.
-     * Giả định: bảng staff và suppliers có cột name.
-     */
     public function getAll()
     {
         $sql = "
@@ -47,12 +41,83 @@ class Booking extends BaseModel
         return $this->queryAll($sql);
     }
 
-    // Tạo booking mới (Giữ nguyên hoặc thêm staff_id, supplier_id vào $data)
+    /**
+     * Tạo booking mới.
+     */
     public function createBooking($data)
     {
-        // $data phải có: customer_name, ..., booking_date, (có thể thêm staff_id, supplier_id)
         return $this->insert($data);
     }
 
-    // ... (Giữ nguyên updateStatus và getStatusHistory)
+    
+    public function getBookingStatus($id)
+    {
+        $sql = "SELECT status FROM {$this->table} WHERE id = :id";
+        
+        
+        $result = $this->queryOne($sql, ['id' => $id]);
+        
+        // Truy cập trực tiếp vào khóa 'status' của mảng kết quả
+        return $result['status'] ?? null;
+    }
+
+    
+    public function insertHistory($historyData)
+    {
+        // Giả định BaseModel có hàm insert($data, $tableName)
+        return $this->insert($historyData, $this->historyTable);
+    }
+
+    
+    public function updateStatus($id, $newStatus)
+    {
+        // 1. Lấy trạng thái CŨ
+        $oldStatus = $this->getBookingStatus($id);
+
+        if ($oldStatus === $newStatus) {
+            // Không làm gì nếu trạng thái không đổi
+            return true; 
+        }
+
+        // Bắt đầu Transaction nếu BaseModel hỗ trợ: $this->begin_transaction(); 
+
+        // 2. Cập nhật trạng thái MỚI vào bảng bookings
+        $updateSql = "UPDATE {$this->table} SET status = :status WHERE id = :id";
+        $updateResult = $this->query($updateSql, [
+            'status' => $newStatus,
+            'id' => $id
+        ]);
+        
+        if ($updateResult) {
+            // 3. Lưu bản ghi lịch sử
+            $historyData = [
+                'booking_id' => $id,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'changed_at' => date('Y-m-d H:i:s')
+            ];
+            
+            $historyResult = $this->insertHistory($historyData);
+
+            // Nếu sử dụng Transaction, cần: if ($historyResult) { $this->commit(); } else { $this->rollback(); }
+            return $historyResult;
+        }
+        return false; 
+    }
+
+
+    public function history($bookingId)
+    {
+        $sql = "
+            SELECT 
+                old_status, 
+                new_status, 
+                changed_at 
+            FROM {$this->historyTable} 
+            WHERE booking_id = :id 
+            ORDER BY changed_at DESC
+        ";
+        // Giả định queryAll trả về mảng các mảng
+        return $this->queryAll($sql, ['id' => $bookingId]);
+    }
 }
