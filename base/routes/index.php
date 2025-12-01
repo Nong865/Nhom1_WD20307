@@ -9,10 +9,10 @@ require_once "controllers/UserController.php";
 require_once "controllers/HdvController.php";
 require_once "controllers/TourController.php";
 require_once "controllers/SupplierController.php";
-require_once "controllers/TourOperationController.php";
+// require_once "controllers/TourOperationController.php";
 
 /* Instance controller cho phần Operation */
-$operation = new TourOperationController();
+// $operation = new TourOperationController();
 
 /* Action hiện tại */
 $action = $_GET['action'] ?? 'login';
@@ -90,7 +90,6 @@ switch ($action) {
     case "userEdit": (new UserController())->edit(); break;
     case "userUpdate": (new UserController())->update(); break;
     case "userDelete": (new UserController())->delete(); break;
-
 
     /* ======================================
         TOUR OPERATION – LỊCH KHỞI HÀNH
