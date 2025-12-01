@@ -37,11 +37,11 @@ $currentUser = $_SESSION['user'] ?? null;
 
 <div class="content">
     <?php
-    if (isset($content)) {
-        echo $content;
-    } else {
-        echo "<p>Không có nội dung để hiển thị</p>";
-    }
+     if (file_exists($content)) {
+            include $content;   // ✔ Load view đúng cách
+        } else {
+            echo "<p> $content</p>";
+        }
     ?>
 </div>
 
