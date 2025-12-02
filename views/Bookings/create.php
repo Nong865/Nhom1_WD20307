@@ -46,15 +46,15 @@
                 </div>
                 
                 <div class="mb-3">
-                    <label class="form-label">Nhà cung cấp liên quan</label>
-                    <select class="form-select" name="supplier_id">
-                        <option value="">-- Không có/Chọn Nhà cung cấp --</option>
-                        <?php foreach ($suppliers as $supplier): ?>
-                            <option value="<?= htmlspecialchars($supplier['id']) ?>">
-                                <?= htmlspecialchars($supplier['name']) ?>
+                    <label class="form-label">Nhà cung cấp / Đối tác liên quan</label>
+                    <select class="form-select" name="partner_ids[]" multiple size="5">
+                        <?php foreach ($partners as $p): ?>
+                            <option value="<?= htmlspecialchars($p['id']) ?>">
+                                <?= htmlspecialchars($p['name']) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
+                    <small class="text-muted">Giữ Ctrl (hoặc Cmd) để chọn nhiều nhà cung cấp</small>
                 </div>
                 
                 <div class="mb-3">
@@ -113,15 +113,28 @@
     const groupRadio = document.getElementById('group');
     const quantityInput = document.getElementById('quantity');
 
-    individualRadio.addEventListener('change', () => {
+    function setForIndividual() {
         quantityInput.value = 1;
         quantityInput.readOnly = true;
+        quantityInput.min = 1;
+    }
+
+    function setForGroup() {
+        quantityInput.value = '';
+        quantityInput.readOnly = false;
+        quantityInput.min = 1;
+    }
+
+    individualRadio.addEventListener('change', () => {
+        if (individualRadio.checked) setForIndividual();
     });
 
     groupRadio.addEventListener('change', () => {
-        quantityInput.value = '';
-        quantityInput.readOnly = false;
+        if (groupRadio.checked) setForGroup();
     });
+
+    // Init
+    if (individualRadio.checked) setForIndividual();
 </script>
 
 </body>

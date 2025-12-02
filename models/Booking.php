@@ -5,30 +5,49 @@ class Booking extends BaseModel
 {
     protected $table = 'bookings';
     protected $staffTable = 'staff';
-    protected $supplierTable = 'suppliers';
+    protected $partnerTable = 'partners';       // bảng partner
     protected $historyTable = 'booking_history';
-    protected $tourTable = 'tours'; // ⭐ Thêm bảng tour
+    protected $tourTable = 'tours';
+    protected $bookingPartnerTable = 'booking_partners'; // bảng trung gian booking-partner
 
     /**
-     * Lấy danh sách booking + join staff + supplier
+     * Lấy tất cả booking kèm staff + partner (nhiều partner)
      */
     public function getAll()
     {
-        $sql = "
-            SELECT 
-                b.*, 
-                s.name AS staff_name, 
-                sp.name AS supplier_name
-            FROM {$this->table} b
-            LEFT JOIN {$this->staffTable} s ON b.staff_id = s.id
-            LEFT JOIN {$this->supplierTable} sp ON b.supplier_id = sp.id
-            ORDER BY b.booking_date DESC
-        ";
-        return $this->queryAll($sql);
+        // Lấy tất cả booking
+        $bookings = $this->queryAll("SELECT * FROM {$this->table} ORDER BY booking_date DESC");
+
+        // Gắn staff và partner cho từng booking
+        foreach ($bookings as &$booking) {
+            // Staff
+            $staff = $this->queryOne("SELECT name FROM {$this->staffTable} WHERE id = :id", ['id' => $booking['staff_id']]);
+            $booking['staff_name'] = $staff['name'] ?? null;
+
+            // Partners
+            $partners = $this->getPartnersByBooking($booking['id']);
+            $booking['partners'] = $partners; // trả về mảng partner
+        }
+
+        return $bookings;
     }
 
     /**
-     * Lấy tất cả nhân viên
+     * Lấy danh sách partner của 1 booking
+     */
+    public function getPartnersByBooking($bookingId)
+    {
+        $sql = "
+            SELECT p.id, p.name
+            FROM {$this->partnerTable} p
+            INNER JOIN {$this->bookingPartnerTable} bp ON bp.partner_id = p.id
+            WHERE bp.booking_id = :booking_id
+        ";
+        return $this->queryAll($sql, ['booking_id' => $bookingId]);
+    }
+
+    /**
+     * Lấy danh sách nhân viên
      */
     public function getAllStaff()
     {
@@ -37,16 +56,16 @@ class Booking extends BaseModel
     }
 
     /**
-     * Lấy tất cả nhà cung cấp
+     * Lấy danh sách partner
      */
-    public function getAllSuppliers()
+    public function getAllPartners()
     {
-        $sql = "SELECT id, name FROM {$this->supplierTable} ORDER BY name ASC";
+        $sql = "SELECT id, name FROM {$this->partnerTable} ORDER BY name ASC";  
         return $this->queryAll($sql);
     }
 
     /**
-     * ⭐ Lấy tất cả tour từ bảng tour
+     * Lấy danh sách tour
      */
     public function getAllTours()
     {
@@ -55,11 +74,26 @@ class Booking extends BaseModel
     }
 
     /**
-     * Tạo booking mới
+     * Tạo booking mới (có thể kèm nhiều partner)
+     * $data: mảng dữ liệu booking
+     * $partnerIds: mảng id partner
      */
-    public function createBooking($data)
+    public function createBooking($data, $partnerIds = [])
     {
-        return $this->insert($data);
+        // 1. Insert booking
+        $bookingId = $this->insert($data);
+
+        // 2. Gắn partner nếu có
+        if ($bookingId && !empty($partnerIds)) {
+            foreach ($partnerIds as $partnerId) {
+                $this->insert([
+                    'booking_id' => $bookingId,
+                    'partner_id' => $partnerId
+                ], $this->bookingPartnerTable);
+            }
+        }
+
+        return $bookingId;
     }
 
     /**
@@ -73,7 +107,7 @@ class Booking extends BaseModel
     }
 
     /**
-     * Thêm lịch sử thay đổi trạng thái
+     * Thêm lịch sử booking
      */
     public function insertHistory($historyData)
     {
@@ -87,11 +121,12 @@ class Booking extends BaseModel
     {
         $oldStatus = $this->getBookingStatus($id);
 
+        // Nếu không thay đổi thì bỏ qua
         if ($oldStatus === $newStatus) {
-            return true; // Không đổi trạng thái thì không cần lưu
+            return true;
         }
 
-        // 1. Cập nhật bảng bookings
+        // Cập nhật bảng bookings
         $updateSql = "UPDATE {$this->table} SET status = :status WHERE id = :id";
         $updateResult = $this->query($updateSql, [
             'status' => $newStatus,
@@ -99,7 +134,7 @@ class Booking extends BaseModel
         ]);
 
         if ($updateResult) {
-            // 2. Lưu lịch sử
+            // Lưu lịch sử trạng thái
             $historyData = [
                 'booking_id' => $id,
                 'old_status' => $oldStatus,

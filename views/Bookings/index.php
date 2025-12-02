@@ -24,11 +24,11 @@
         // Hàm xác định class badge theo trạng thái
         function getStatusBadgeClass($status) {
             return match($status) {
-                'Hoàn thành' => 'bg-success', // Thay 'Hoàn tất' thành 'Hoàn thành' cho đồng bộ
+                'Hoàn thành' => 'bg-success',
                 'Đã xác nhận' => 'bg-primary', 
                 'Đã cọc'=> 'bg-info text-dark',
                 'Chờ xác nhận' => 'bg-warning text-dark',
-                'Đã hủy' => 'bg-danger', // Thay 'Hủy' thành 'Đã hủy' cho đồng bộ
+                'Đã hủy' => 'bg-danger',
                 default => 'bg-secondary',
             };
         }
@@ -64,7 +64,16 @@
                         <td><?= htmlspecialchars($b['quantity']) ?></td>
                         <td><?= htmlspecialchars($b['tour_name']) ?></td>
                         <td><?= htmlspecialchars($b['staff_name'] ?? 'Chưa chỉ định') ?></td> 
-                        <td><?= htmlspecialchars($b['supplier_name'] ?? 'N/A') ?></td> 
+                        <td>
+                            <?php
+                                if (!empty($b['partners']) && is_array($b['partners'])) {
+                                    $partnerNames = array_map(fn($p) => $p['name'], $b['partners']);
+                                    echo htmlspecialchars(implode(', ', $partnerNames));
+                                } else {
+                                    echo 'N/A';
+                                }
+                            ?>
+                        </td>
                         <td><?= htmlspecialchars($b['tour_date']) ?></td>
                         <td><?= htmlspecialchars($b['booking_date']) ?></td>
                         <td>

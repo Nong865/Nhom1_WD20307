@@ -10,21 +10,17 @@ class BookingController
         $this->booking = new Booking();
     }
 
-    /**
-     * Hiển thị form tạo booking (lấy Staff, Supplier, Tour)
-     */
+    // Hiển thị form tạo booking
     public function create()
     {
-        $staffs     = $this->booking->getAllStaff(); 
-        $suppliers  = $this->booking->getAllSuppliers();
-        $tours      = $this->booking->getAllTours();   // ⭐ Lấy dữ liệu tour từ DB
-        
+        $staffs   = $this->booking->getAllStaff(); 
+        $partners = $this->booking->getAllPartners(); // danh sách partner
+        $tours    = $this->booking->getAllTours();
+
         include __DIR__ . '/../views/bookings/create.php';
     }
 
-    /**
-     * Lưu booking
-     */
+    // Lưu booking
     public function store()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -32,21 +28,21 @@ class BookingController
             exit;
         }
 
-        $customer_name  = $_POST['customer_name'];
-        $customer_phone = $_POST['customer_phone'];
-        $tour_name      = $_POST['tour_name'];   // ⭐ Lấy tên tour từ select
-        $tour_date      = $_POST['tour_date'];
-        $special_request = $_POST['special_request'];
-        $type           = $_POST['type'];
+        $customer_name   = $_POST['customer_name'] ?? '';
+        $customer_phone  = $_POST['customer_phone'] ?? '';
+        $tour_name       = $_POST['tour_name'] ?? '';
+        $tour_date       = $_POST['tour_date'] ?? '';
+        $special_request = $_POST['special_request'] ?? '';
+        $type            = $_POST['type'] ?? '';
 
         $staff_id       = isset($_POST['staff_id']) ? (int)$_POST['staff_id'] : null;
-        $supplier_id    = isset($_POST['supplier_id']) ? (int)$_POST['supplier_id'] : null;
+        $partnerIds     = $_POST['partner_ids'] ?? []; // ⭐ Nhận mảng partner_ids từ form
 
-        // Nếu là khách lẻ thì mặc định 1 người
+        // Nếu khách lẻ → số lượng = 1
         if ($type === 'individual') {
             $quantity = 1;
         } else {
-            $quantity = (int)$_POST['quantity'];
+            $quantity = (int)($_POST['quantity'] ?? 0);
         }
 
         // Kiểm tra số lượng
@@ -58,37 +54,33 @@ class BookingController
         }
 
         $data = [
-            'customer_name' => $customer_name,
+            'customer_name'  => $customer_name,
             'customer_phone' => $customer_phone,
-            'quantity'   => $quantity,
-            'tour_name'  => $tour_name,
-            'tour_date'  => $tour_date,
-            'special_request' => $special_request,
-            'type'       => $type,
-            'status'     => 'Chờ xác nhận',
-            'booking_date' => date('Y-m-d H:i:s'),
-            'staff_id'   => $staff_id,
-            'supplier_id' => $supplier_id
+            'quantity'       => $quantity,
+            'tour_name'      => $tour_name,
+            'tour_date'      => $tour_date,
+            'special_request'=> $special_request,
+            'type'           => $type,
+            'status'         => 'Chờ xác nhận',
+            'booking_date'   => date('Y-m-d H:i:s'),
+            'staff_id'       => $staff_id
+            // ⭐ partner_id bỏ đi, dùng mảng partnerIds
         ];
 
-        $this->booking->createBooking($data);
+        $this->booking->createBooking($data, $partnerIds); // truyền mảng partner_ids
 
         header("Location: index.php?action=bookingIndex");
         exit;
     }
 
-    /**
-     * Danh sách booking
-     */
+    // Danh sách booking
     public function index()
     {
         $bookings = $this->booking->getAll();
         include __DIR__ . '/../views/bookings/index.php';
     }
 
-    /**
-     * Cập nhật trạng thái + lưu lịch sử
-     */
+    // Cập nhật trạng thái
     public function updateStatus()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -113,12 +105,11 @@ class BookingController
         exit;
     }
 
-    /**
-     * Hiển thị lịch sử booking
-     */
+    // Lịch sử trạng thái booking
     public function history()
     {
         $id = $_GET['id'] ?? null;
+
         if (!$id) {
             die("Thiếu ID booking!");
         }
