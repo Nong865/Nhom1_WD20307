@@ -1,10 +1,7 @@
 <?php
-include_once __DIR__ . '/../../../public/html/header.php';
+include_once('../../../../public/html/header.php');
 
-// --- ĐỊNH NGHĨA BASE PATH ---
-// Vui lòng chỉnh sửa giá trị này để khớp với cấu hình server của bạn
-// Ví dụ: Nếu URL là http://localhost/duan1/tour-management-php/public/index.php
-// thì base path là:
+
 $base_path = '/duan1/tour-management-php/public/';
 // --- KẾT THÚC ĐỊNH NGHĨA ---
 

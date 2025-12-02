@@ -44,6 +44,9 @@
         <a class="nav-link <?= ($active ?? '') == 'tour' ? 'active' : '' ?>" 
            href="index.php?action=listTours">Quản lý tour</a>
 
+        <a class="nav-link <?= ($active ?? '') == 'category' ? 'active' : '' ?>" 
+           href="index.php?action=CategoryIndex">Danh mục Tour</a>
+
         <a class="nav-link <?= ($active ?? '') == 'ncc' ? 'active' : '' ?>" 
            href="index.php?action=supplierIndex">Nhà cung cấp</a>
 

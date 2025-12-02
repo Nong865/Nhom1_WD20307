@@ -165,6 +165,32 @@ switch ($action) {
         (new TourController)->deletePhoto();
         break;
 
+    /* ---------- CATEGORIES (DANH MỤC TOUR) ---------- */
+    case "CategoryIndex":
+        require_once "controllers/CategoryController.php";
+        (new CategoryController())->index();
+        break;
+
+    case "CategoryStore":
+        require_once "controllers/CategoryController.php";
+        (new CategoryController())->store();
+        break;
+
+    case "CategoryEdit":
+        require_once "controllers/CategoryController.php";
+        (new CategoryController())->edit();
+        break;
+
+    case "CategoryUpdate":
+        require_once "controllers/CategoryController.php";
+        (new CategoryController())->update();
+        break;
+
+    case "CategoryDelete":
+        require_once "controllers/CategoryController.php";
+        (new CategoryController())->delete();
+        break;
+
     /* ---------- ROUTE MẶC ĐỊNH ---------- */
     default:
         echo "Không tìm thấy route!";

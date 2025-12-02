@@ -1,5 +1,5 @@
 <div class="container mt-4">
-    <h3 class="mb-3">➕ Thêm Lịch trình Chi tiết cho Tour: <b><?= $tour['name'] ?? 'ID Tour không hợp lệ' ?></b></h3>
+    <h3 class="mb-3">Thêm Lịch trình Chi tiết cho Tour: <b><?= $tour['name'] ?? 'ID Tour không hợp lệ' ?></b></h3>
     
     <?php if (isset($total_days) && $total_days > 0): ?>
         <div class="alert alert-info">
@@ -16,13 +16,13 @@
         <input type="hidden" name="tour_id" value="<?= $tour['id'] ?>">
 
         <div class="form-group mb-3">
-            <label for="day_number">Ngày thứ mấy trong Tour (*):</label>
+            <label for="day_number">Ngày thứ mấy trong Tour:</label>
             <input type="number" name="day_number" id="day_number" class="form-control" required min="1" 
                    placeholder="Ví dụ: 1, 2, 3...">
         </div>
 
         <div class="form-group mb-3">
-            <label for="title">Tiêu đề (Địa điểm/Hoạt động chính) (*):</label>
+            <label for="title">Tiêu đề (Địa điểm/Hoạt động chính):</label>
             <input type="text" name="title" id="title" class="form-control" required 
                    placeholder="Ví dụ: Tham quan Vịnh Hạ Long, Chèo thuyền Kayak">
         </div>

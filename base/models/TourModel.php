@@ -5,38 +5,45 @@ class TourModel extends BaseModel
 {
     protected $table = "tours";
 
+    // ======================================================================
+    // 1. CHỨC NĂNG CƠ BẢN (CRUD Tour)
+    // ======================================================================
+
     /**
-     * Lấy tất cả tour kèm HDV, nhà cung cấp và album ảnh
+     * Lấy tất cả tour kèm HDV, Nhà cung cấp, và Danh mục (Cho trang list)
+     * LƯU Ý: Vẫn dùng nhiều truy vấn con (N+1) để dễ đọc, nên cân nhắc dùng JOIN nếu dữ liệu lớn.
      */
     public function getAll()
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM {$this->table} ORDER BY id ASC");
+        $sql = "SELECT 
+                    t.*, 
+                    hdv.ho_ten AS hdv_name, 
+                    p.name AS ncc_name,
+                    c.name AS category_name  /* <-- Tên Danh mục */
+                FROM {$this->table} t
+                LEFT JOIN huong_dan_vien hdv ON t.staff_id = hdv.id
+                LEFT JOIN partners p ON t.supplier_id = p.id
+                LEFT JOIN categories c ON t.category_id = c.id /* <-- JOIN với Categories */
+                ORDER BY t.id ASC";
+
+        $stmt = $this->pdo->prepare($sql);
         $stmt->execute();
         $tours = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Vòng lặp chỉ còn xử lý Album Ảnh (và gán tên từ JOIN)
         foreach ($tours as &$tour) {
-            // HDV
-            $tour['hdv'] = '';
-            if (!empty($tour['staff_id'])) {
-                $stmt2 = $this->pdo->prepare("SELECT ho_ten AS name FROM huong_dan_vien WHERE id=?");
-                $stmt2->execute([$tour['staff_id']]);
-                $staff = $stmt2->fetch(PDO::FETCH_ASSOC);
-                $tour['hdv'] = $staff['name'] ?? '';
-            }
+            // Gán tên từ kết quả JOIN
+            $tour['hdv'] = $tour['hdv_name'] ?? '';
+            $tour['ncc'] = $tour['ncc_name'] ?? '';
+            $tour['category_name'] = $tour['category_name'] ?? 'Chưa gán'; // <--- Tên danh mục đã có
 
-            // Nhà cung cấp
-            $tour['ncc'] = '';
-            if (!empty($tour['supplier_id'])) {
-                $stmt3 = $this->pdo->prepare("SELECT name FROM 	partners WHERE id=?");
-                $stmt3->execute([$tour['supplier_id']]);
-                $supplier = $stmt3->fetch(PDO::FETCH_ASSOC);
-                $tour['ncc'] = $supplier['name'] ?? '';
-            }
-
-            // Album ảnh từ bảng photos
+            // Album ảnh (Vẫn cần truy vấn riêng cho Album nếu không muốn phức tạp hóa JOIN)
             $stmt4 = $this->pdo->prepare("SELECT image_path AS image, caption FROM photos WHERE tour_id=?");
             $stmt4->execute([$tour['id']]);
             $tour['album'] = $stmt4->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Xóa các trường JOIN tạm thời
+            unset($tour['hdv_name'], $tour['ncc_name']); 
         }
 
         return $tours;
@@ -47,72 +54,48 @@ class TourModel extends BaseModel
      */
     public function find($id)
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM {$this->table} WHERE id=?");
+        $sql = "SELECT 
+                    t.*, 
+                    hdv.ho_ten AS hdv_name, 
+                    p.name AS ncc_name,
+                    c.name AS category_name 
+                FROM {$this->table} t
+                LEFT JOIN huong_dan_vien hdv ON t.staff_id = hdv.id
+                LEFT JOIN partners p ON t.supplier_id = p.id
+                LEFT JOIN categories c ON t.category_id = c.id
+                WHERE t.id = ?";
+
+        $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$id]);
         $tour = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($tour) {
-            // HDV
-            $tour['hdv'] = '';
-            if (!empty($tour['staff_id'])) {
-                $stmt2 = $this->pdo->prepare("SELECT ho_ten AS name FROM huong_dan_vien WHERE id=?");
-                $stmt2->execute([$tour['staff_id']]);
-                $staff = $stmt2->fetch(PDO::FETCH_ASSOC);
-                $tour['hdv'] = $staff['name'] ?? '';
-            }
-
-            // Nhà cung cấp
-            $tour['ncc'] = '';
-            if (!empty($tour['supplier_id'])) {
-                $stmt3 = $this->pdo->prepare("SELECT name FROM partners WHERE id=?");
-                $stmt3->execute([$tour['supplier_id']]);
-                $supplier = $stmt3->fetch(PDO::FETCH_ASSOC);
-                $tour['ncc'] = $supplier['name'] ?? '';
-            }
+            // Gán tên từ kết quả JOIN
+            $tour['hdv'] = $tour['hdv_name'] ?? '';
+            $tour['ncc'] = $tour['ncc_name'] ?? '';
+            $tour['category_name'] = $tour['category_name'] ?? 'Chưa gán'; 
 
             // Album ảnh
             $stmt4 = $this->pdo->prepare("SELECT image_path AS image, caption FROM photos WHERE tour_id=?");
             $stmt4->execute([$tour['id']]);
             $tour['album'] = $stmt4->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Xóa các trường JOIN tạm thời
+            unset($tour['hdv_name'], $tour['ncc_name']); 
         }
 
         return $tour;
     }
 
     /**
-     * Thêm tour mới
+     * Thêm tour mới (ĐÃ CẬP NHẬT: Thêm category_id)
      */
     public function insert($data)
     {
         $stmt = $this->pdo->prepare(
             "INSERT INTO {$this->table} 
-            (name, price, description, start_date, end_date, created_at, staff_id, supplier_id, main_image) 
-            VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?)"
-        );
-
-        $stmt->execute([
-            $data['name'],
-            $data['price'],
-            $data['description'],
-            $data['start_date'],
-            $data['end_date'],
-            $data['staff_id'] ?? null,
-            $data['supplier_id'] ?? null,
-            $data['main_image'] ?? null
-        ]);
-
-        return $this->pdo->lastInsertId();
-    }
-
-    /**
-     * Cập nhật tour
-     */
-    public function updateTour($id, $data)
-    {
-        $stmt = $this->pdo->prepare(
-            "UPDATE {$this->table} SET 
-                name=?, price=?, description=?, start_date=?, end_date=?, staff_id=?, supplier_id=?, main_image=? 
-            WHERE id=?"
+             (name, price, description, start_date, end_date, created_at, staff_id, supplier_id, main_image, category_id) 
+             VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)"
         );
 
         return $stmt->execute([
@@ -124,6 +107,31 @@ class TourModel extends BaseModel
             $data['staff_id'] ?? null,
             $data['supplier_id'] ?? null,
             $data['main_image'] ?? null,
+            $data['category_id'] ?? null // <--- Đã thêm category_id
+        ]);
+    }
+
+    /**
+     * Cập nhật tour (ĐÃ CẬP NHẬT: Thêm category_id)
+     */
+    public function updateTour($id, $data)
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE {$this->table} SET 
+                name=?, price=?, description=?, start_date=?, end_date=?, staff_id=?, supplier_id=?, main_image=?, category_id=? 
+             WHERE id=?"
+        );
+
+        return $stmt->execute([
+            $data['name'],
+            $data['price'],
+            $data['description'],
+            $data['start_date'],
+            $data['end_date'],
+            $data['staff_id'] ?? null,
+            $data['supplier_id'] ?? null,
+            $data['main_image'] ?? null,
+            $data['category_id'] ?? null, // <--- Đã thêm category_id
             $id
         ]);
     }
@@ -137,6 +145,71 @@ class TourModel extends BaseModel
         return $stmt->execute([$id]);
     }
 
+    // ======================================================================
+    // 2. CHỨC NĂNG HỖ TRỢ (Dùng cho Form SELECT và Logic Tính toán)
+    // ======================================================================
+
+    /**
+     * Lấy tất cả Danh mục tour (Categories)
+     */
+    public function getAllCategories(){
+        $stmt = $this->pdo->prepare("SELECT id, name FROM categories ORDER BY name ASC");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy tour theo Danh mục (dùng để lọc)
+     */
+    public function getByCategory($categoryId)
+    {
+        $stmt = $this->pdo->prepare("SELECT * FROM {$this->table} WHERE category_id = ? ORDER BY id ASC");
+        $stmt->execute([$categoryId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    /**
+     * Lấy tất cả Hướng dẫn viên (huong_dan_vien) để hiển thị trong select box
+     */
+    public function getAllStaff()
+    {
+        $stmt = $this->pdo->prepare("SELECT id, ho_ten AS name FROM huong_dan_vien ORDER BY name ASC");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy tất cả Nhà cung cấp (partners) để hiển thị trong select box
+     */
+    public function getAllSuppliers()
+    {
+        $stmt = $this->pdo->prepare("SELECT id, name FROM partners ORDER BY name ASC");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy tổng số ngày của một tour
+     */
+    public function getTotalDays($tourId)
+    {
+        $tour = $this->find($tourId); 
+        if ($tour && !empty($tour['start_date']) && !empty($tour['end_date'])) {
+            try {
+                $start = new DateTime($tour['start_date']);
+                $end = new DateTime($tour['end_date']);
+                $interval = $start->diff($end);
+                return $interval->days + 1;
+            } catch (Exception $e) {
+                return 0;
+            }
+        }
+        return 0;
+    }
+
+    // ======================================================================
+    // 3. CHỨC NĂNG LỊCH TRÌNH (ITINERARY CRUD)
+    // ======================================================================
 
     /**
      * Lấy Lịch trình chi tiết của một tour theo ID
@@ -153,25 +226,14 @@ class TourModel extends BaseModel
     }
 
     /**
-     * Lấy một mục Lịch trình theo ID của mục đó
-     */
-    public function findItinerary($id)
-    {
-        $stmt = $this->pdo->prepare("SELECT * FROM tour_itineraries WHERE id=?");
-        $stmt->execute([$id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-    
-    /**
      * Thêm mục Lịch trình mới
      */
     public function insertItinerary($data)
     {
         $stmt = $this->pdo->prepare(
             "INSERT INTO tour_itineraries (tour_id, day_number, title, details) 
-            VALUES (?, ?, ?, ?)"
+             VALUES (?, ?, ?, ?)"
         );
-
         return $stmt->execute([
             $data['tour_id'],
             $data['day_number'],
@@ -181,22 +243,31 @@ class TourModel extends BaseModel
     }
 
     /**
-     * Cập nhật mục Lịch trình
+     * Cập nhật mục Lịch trình dựa trên ID
      */
     public function updateItinerary($id, $data)
     {
-        $stmt = $this->pdo->prepare(
-            "UPDATE tour_itineraries SET 
-                day_number=?, title=?, details=?
-            WHERE id=?"
-        );
-
+        $sql = "UPDATE tour_itineraries SET day_number = ?, title = ?, details = ? WHERE id = ?";
+        $stmt = $this->pdo->prepare($sql);
+        
         return $stmt->execute([
             $data['day_number'],
             $data['title'],
             $data['details'],
-            $id
+            $id // ID của mục lịch trình cần cập nhật
         ]);
+    }
+
+    /**
+     * Tìm một mục Lịch trình bằng ID
+     */
+    public function findItinerary($id)
+    {
+        $sql = "SELECT * FROM tour_itineraries WHERE id = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$id]);
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -207,6 +278,14 @@ class TourModel extends BaseModel
         $stmt = $this->pdo->prepare("DELETE FROM tour_itineraries WHERE id=?");
         return $stmt->execute([$id]);
     }
+    
+    // ======================================================================
+    // 4. CHỨC NĂNG ALBUM ẢNH (PHOTO CRUD)
+    // ======================================================================
+
+    /**
+     * Lấy tất cả ảnh (Album) của một tour
+     */
     public function getAlbumByTourId($tourId) 
     {
         $stmt = $this->pdo->prepare("
@@ -225,7 +304,7 @@ class TourModel extends BaseModel
     {
         $stmt = $this->pdo->prepare(
             "INSERT INTO photos (tour_id, image_path, caption, created_at) 
-            VALUES (?, ?, ?, NOW())"
+             VALUES (?, ?, ?, NOW())"
         );
         return $stmt->execute([
             $data['tour_id'],
@@ -237,116 +316,34 @@ class TourModel extends BaseModel
     /**
      * Xóa ảnh khỏi Album
      */
-   
-
-    public function viewAlbum() {
-        $tour_id = $_GET['id'];
-        $tour = $this->tourModel->find($tour_id); 
-        $photos = $this->tourModel->getAlbumByTourId($tour_id);
-
-        $content = render("tours/album/view", [ 
-            'tour' => $tour,
-            'photos' => $photos
-        ]);
-
-        include dirname(__DIR__) . "/views/main.php";
-    }
-
-    public function addPhoto() {
-        $tour_id = $_GET['tour_id'];
-        $tour = $this->tourModel->find($tour_id);
-
-        $content = render("tours/album/add", [ 
-            'tour' => $tour
-        ]);
-
-        include dirname(__DIR__) . "/views/main.php";
-    }
-
-    public function savePhoto() {
-        $tour_id = $_POST['tour_id'];
-        $caption = $_POST['caption'] ?? '';
-        $img = null;
-
-        // Xử lý upload file
-        if (!empty($_FILES['image_file']['name'])) {
-            $name = "album_img_" . uniqid() . ".jpg";
-            $upload_dir = dirname(__DIR__) . "/assets/uploads/album/";
-            
-            // Đảm bảo thư mục tồn tại
-            if (!is_dir($upload_dir)) {
-                mkdir($upload_dir, 0777, true);
-            }
-            
-            $path = "assets/uploads/album/" . $name;
-            move_uploaded_file($_FILES['image_file']['tmp_name'], $upload_dir . $name);
-            $img = $path;
-        }
-
-        if ($img) {
-            $data = [
-                "tour_id" => $tour_id,
-                "image_path" => $img,
-                "caption" => $caption
-            ];
-            $this->tourModel->insertPhoto($data);
-        }
-        
-        // Chuyển hướng về trang Album sau khi lưu
-        header("Location: index.php?action=viewAlbum&id=" . $tour_id);
-    }
-
-    public function deletePhoto() {
-        $id = $_GET['id'];
-        $tour_id = $_GET['tour_id'];
-        
-        // Bạn có thể thêm logic xóa file vật lý tại đây nếu muốn
-        
-        $this->tourModel->deletePhoto($id);
-        
-        // Chuyển hướng về trang Album
-        header("Location: index.php?action=viewAlbum&id=" . $tour_id);
-    }
-    /**
-     * Lấy tất cả Nhân sự (Staff) để hiển thị trong select box
-     */
-    public function getAllStaff()
+    public function deletePhoto($id)
     {
-        // Giả định tên bảng là 'staff' và cột tên là 'name'
-        $stmt = $this->pdo->prepare("SELECT id, ho_ten AS name FROM huong_dan_vien ORDER BY name ASC");
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->pdo->prepare("DELETE FROM photos WHERE id=?");
+        return $stmt->execute([$id]);
     }
-
-    /**
-     * Lấy tất cả Nhà cung cấp (Suppliers) để hiển thị trong select box
-     */
-    public function getAllSuppliers()
+  
+    public function findPhoto($id)
     {
-        // Giả định tên bảng là 'suppliers' và cột tên là 'name'
-        $stmt = $this->pdo->prepare("SELECT id, name FROM partners ORDER BY name ASC");
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $sql = "SELECT image_path FROM photos WHERE id = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Lấy tổng số ngày của một tour
-     * (Cần thiết cho form edit để pre-fill trường total_days)
-     */
-    public function getTotalDays($tourId)
-    {
-        $tour = $this->find($tourId); // Sử dụng hàm find() đã có
-        if ($tour && !empty($tour['start_date']) && !empty($tour['end_date'])) {
-            try {
-                $start = new DateTime($tour['start_date']);
-                $end = new DateTime($tour['end_date']);
-                $interval = $start->diff($end);
-                return $interval->days + 1;
-            } catch (Exception $e) {
-                return 0; // Trả về 0 nếu có lỗi ngày tháng
-            }
-        }
-        return 0;
-    }
+    // ======================================================================
+// 5. CHỨC NĂNG BẢO TOÀN KHÓA NGOẠI
+// ======================================================================
 
+/**
+ * Đặt category_id về NULL cho tất cả các Tour thuộc danh mục sắp bị xóa.
+ * Đây là bước cần thiết trước khi xóa danh mục trong bảng 'categories'.
+ * @param int $categoryId ID của danh mục sắp bị xóa
+ * @return bool Kết quả của lệnh UPDATE
+ */
+public function setCategoryToNull($categoryId)
+{
+    $sql = "UPDATE {$this->table} SET category_id = NULL WHERE category_id = ?";
+    $stmt = $this->pdo->prepare($sql);
+    return $stmt->execute([$categoryId]);
+}
 }
