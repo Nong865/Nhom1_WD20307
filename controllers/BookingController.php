@@ -5,26 +5,25 @@ class BookingController
 {
     private $booking;
 
-
     public function __construct()
     {
         $this->booking = new Booking();
-    
     }
 
     /**
-     * Hiển thị form tạo booking, lấy dữ liệu phụ trợ: Staff, Supplier
+     * Hiển thị form tạo booking (lấy Staff, Supplier, Tour)
      */
     public function create()
     {
-        $staffs = $this->booking->getAllStaff(); 
-        $suppliers = $this->booking->getAllSuppliers();
+        $staffs     = $this->booking->getAllStaff(); 
+        $suppliers  = $this->booking->getAllSuppliers();
+        $tours      = $this->booking->getAllTours();   // ⭐ Lấy dữ liệu tour từ DB
         
         include __DIR__ . '/../views/bookings/create.php';
     }
 
     /**
-     * Lưu booking (Thêm staff_id và supplier_id)
+     * Lưu booking
      */
     public function store()
     {
@@ -35,40 +34,41 @@ class BookingController
 
         $customer_name  = $_POST['customer_name'];
         $customer_phone = $_POST['customer_phone'];
-        $tour_name = $_POST['tour_name'];
-        $tour_date  = $_POST['tour_date'];
+        $tour_name      = $_POST['tour_name'];   // ⭐ Lấy tên tour từ select
+        $tour_date      = $_POST['tour_date'];
         $special_request = $_POST['special_request'];
-        $type = $_POST['type']; 
-        
-        $staff_id = isset($_POST['staff_id']) ? (int)$_POST['staff_id'] : null;
-        $supplier_id = isset($_POST['supplier_id']) ? (int)$_POST['supplier_id'] : null;
-        
+        $type           = $_POST['type'];
+
+        $staff_id       = isset($_POST['staff_id']) ? (int)$_POST['staff_id'] : null;
+        $supplier_id    = isset($_POST['supplier_id']) ? (int)$_POST['supplier_id'] : null;
+
+        // Nếu là khách lẻ thì mặc định 1 người
         if ($type === 'individual') {
-            $quantity = 1; 
+            $quantity = 1;
         } else {
-            $quantity = (int)$_POST['quantity']; 
+            $quantity = (int)$_POST['quantity'];
         }
 
-        // Kiểm tra chỗ trống 
-        $max_slot = 30; 
+        // Kiểm tra số lượng
+        $max_slot = 30;
         if ($quantity > $max_slot) {
             $error = "Số lượng quá lớn! Chỉ còn $max_slot chỗ trống.";
-            $this->create(); // Load lại form với lỗi
+            $this->create();
             return;
         }
 
         $data = [
             'customer_name' => $customer_name,
             'customer_phone' => $customer_phone,
-            'quantity'  => $quantity,
-            'tour_name' => $tour_name,
-            'tour_date' => $tour_date,
-            'special_request'=> $special_request,
-            'type'  => $type,
-            'status' => 'Chờ xác nhận',
+            'quantity'   => $quantity,
+            'tour_name'  => $tour_name,
+            'tour_date'  => $tour_date,
+            'special_request' => $special_request,
+            'type'       => $type,
+            'status'     => 'Chờ xác nhận',
             'booking_date' => date('Y-m-d H:i:s'),
-            'staff_id' => $staff_id, 
-            'supplier_id' => $supplier_id 
+            'staff_id'   => $staff_id,
+            'supplier_id' => $supplier_id
         ];
 
         $this->booking->createBooking($data);
@@ -87,7 +87,7 @@ class BookingController
     }
 
     /**
-     * Cập nhật trạng thái và lưu lịch sử
+     * Cập nhật trạng thái + lưu lịch sử
      */
     public function updateStatus()
     {
@@ -96,16 +96,15 @@ class BookingController
             exit;
         }
 
-        $id = $_POST['id'] ?? null;
+        $id     = $_POST['id'] ?? null;
         $status = $_POST['status'] ?? null;
 
         if (!$id || !$status) {
             die("Thiếu dữ liệu để cập nhật trạng thái booking!");
         }
 
-        // Gọi hàm Model đã được cập nhật để lưu lịch sử
-        $result = $this->booking->updateStatus($id, $status); 
-        
+        $result = $this->booking->updateStatus($id, $status);
+
         if (!$result) {
             die("Lỗi khi cập nhật trạng thái hoặc lưu lịch sử!");
         }
@@ -115,7 +114,7 @@ class BookingController
     }
 
     /**
-     * Hiển thị lịch sử trạng thái
+     * Hiển thị lịch sử booking
      */
     public function history()
     {

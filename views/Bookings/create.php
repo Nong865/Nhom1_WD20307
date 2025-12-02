@@ -37,13 +37,11 @@
                     <label class="form-label">Nhân viên phụ trách</label>
                     <select class="form-select" name="staff_id" required>
                         <option value="">-- Chọn Nhân viên --</option>
-                        <?php if (!empty($staffs)): ?>
-                            <?php foreach ($staffs as $staff): ?>
-                                <option value="<?= htmlspecialchars($staff['id']) ?>">
-                                    <?= htmlspecialchars($staff['name']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
+                        <?php foreach ($staffs as $staff): ?>
+                            <option value="<?= htmlspecialchars($staff['id']) ?>">
+                                <?= htmlspecialchars($staff['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 
@@ -51,13 +49,11 @@
                     <label class="form-label">Nhà cung cấp liên quan</label>
                     <select class="form-select" name="supplier_id">
                         <option value="">-- Không có/Chọn Nhà cung cấp --</option>
-                        <?php if (!empty($suppliers)): ?>
-                            <?php foreach ($suppliers as $supplier): ?>
-                                <option value="<?= htmlspecialchars($supplier['id']) ?>">
-                                    <?= htmlspecialchars($supplier['name']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
+                        <?php foreach ($suppliers as $supplier): ?>
+                            <option value="<?= htmlspecialchars($supplier['id']) ?>">
+                                <?= htmlspecialchars($supplier['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 
@@ -80,7 +76,14 @@
 
                 <div class="mb-3">
                     <label class="form-label">Tên tour</label>
-                    <input type="text" class="form-control" name="tour_name" required>
+                    <select class="form-select" name="tour_name" required>
+                        <option value="">-- Chọn Tour --</option>
+                        <?php foreach ($tours as $tour): ?>
+                            <option value="<?= htmlspecialchars($tour['name']) ?>">
+                                <?= htmlspecialchars($tour['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
                 <div class="mb-3">
@@ -111,17 +114,13 @@
     const quantityInput = document.getElementById('quantity');
 
     individualRadio.addEventListener('change', () => {
-        if (individualRadio.checked) {
-            quantityInput.value = 1;
-            quantityInput.readOnly = true;
-        }
+        quantityInput.value = 1;
+        quantityInput.readOnly = true;
     });
 
     groupRadio.addEventListener('change', () => {
-        if (groupRadio.checked) {
-            quantityInput.value = '';
-            quantityInput.readOnly = false;
-        }
+        quantityInput.value = '';
+        quantityInput.readOnly = false;
     });
 </script>
 
