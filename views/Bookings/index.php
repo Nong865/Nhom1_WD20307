@@ -44,7 +44,10 @@
                     <th>Loại</th>
                     <th>Số lượng</th>
                     <th>Tour</th>
-                    <th>Nhân viên</th>
+                    <th>Giá 1 người (VNĐ)</th>
+                    <th>Tổng tiền (VNĐ)</th>
+                    <th>Hướng dẫn viên</th>
+                    
                     <th>Nhà cung cấp</th> 
                     <th>Ngày tour</th>
                     <th>Ngày đặt</th>
@@ -63,7 +66,24 @@
                         <td><?= htmlspecialchars($b['type'] ?? 'N/A') ?></td>
                         <td><?= htmlspecialchars($b['quantity']) ?></td>
                         <td><?= htmlspecialchars($b['tour_name']) ?></td>
-                        <td><?= htmlspecialchars($b['staff_name'] ?? 'Chưa chỉ định') ?></td> 
+                        <td>
+                            <?= isset($b['total_price'], $b['quantity']) && $b['quantity'] > 0 
+                                ? number_format($b['total_price'] / $b['quantity'], 0, ',', '.') 
+                                : '0' ?>
+                        </td>
+                        <td>
+                            <?= isset($b['total_price']) 
+                                ? number_format($b['total_price'], 0, ',', '.') 
+                                : '0' ?>
+                        </td>
+                        
+                        <td>
+                            <?= htmlspecialchars($b['hdv_ho_ten'] ?? 'Chưa chỉ định') ?>
+                            <?php if (!empty($b['hdv_chung_chi'])): ?>
+                                <small class="d-block text-muted">(CC: <?= htmlspecialchars($b['hdv_chung_chi']) ?>)</small>
+                            <?php endif; ?>
+                        </td> 
+                        
                         <td>
                             <?php
                                 if (!empty($b['partners']) && is_array($b['partners'])) {
@@ -107,7 +127,7 @@
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="12" class="text-center text-muted py-3">
+                    <td colspan="14" class="text-center text-muted py-3">
                         Không có booking nào.
                     </td>
                 </tr>

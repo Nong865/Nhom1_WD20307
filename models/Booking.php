@@ -4,37 +4,49 @@ require_once "BaseModel.php";
 class Booking extends BaseModel
 {
     protected $table = 'bookings';
-    protected $staffTable = 'staff';
-    protected $partnerTable = 'partners';       // bảng partner
+    
+    // THAY ĐỔI: Đổi tên bảng staff thành bảng huong_dan_vien
+    protected $huongDanVienTable = 'huong_dan_vien';
+    
+    protected $partnerTable = 'partners';
     protected $historyTable = 'booking_history';
     protected $tourTable = 'tours';
-    protected $bookingPartnerTable = 'booking_partners'; // bảng trung gian booking-partner
+    protected $bookingPartnerTable = 'booking_partners';
 
     /**
-     * Lấy tất cả booking kèm staff + partner (nhiều partner)
+     * Lấy tất cả booking kèm thông tin Hướng dẫn viên + Partner
      */
     public function getAll()
     {
-        // Lấy tất cả booking
+        // Giả sử trong bảng 'bookings' bạn đã đổi cột 'staff_id' thành 'huong_dan_vien_id'
+        // Nếu chưa đổi tên cột trong database, hãy sửa câu SQL dưới đây hoặc đổi lại logic
         $bookings = $this->queryAll("SELECT * FROM {$this->table} ORDER BY booking_date DESC");
 
-        // Gắn staff và partner cho từng booking
         foreach ($bookings as &$booking) {
-            // Staff
-            $staff = $this->queryOne("SELECT name FROM {$this->staffTable} WHERE id = :id", ['id' => $booking['staff_id']]);
-            $booking['staff_name'] = $staff['name'] ?? null;
+            // THAY ĐỔI: Lấy ho_ten và chung_chi từ bảng huong_dan_vien
+            // Lưu ý: check xem cột khóa ngoại trong bảng bookings là 'huong_dan_vien_id' hay vẫn là 'staff_id'
+            // Ở đây mình để là 'huong_dan_vien_id' cho đồng bộ với Controller
+            $hdvId = $booking['huong_dan_vien_id'] ?? $booking['staff_id'] ?? null;
 
-            // Partners
+            if ($hdvId) {
+                $sqlHdv = "SELECT ho_ten, chung_chi FROM {$this->huongDanVienTable} WHERE id = :id";
+                $hdv = $this->queryOne($sqlHdv, ['id' => $hdvId]);
+                
+                $booking['hdv_ho_ten']    = $hdv['ho_ten'] ?? 'Chưa phân công';
+                $booking['hdv_chung_chi'] = $hdv['chung_chi'] ?? '';
+            } else {
+                $booking['hdv_ho_ten']    = 'Chưa phân công';
+                $booking['hdv_chung_chi'] = '';
+            }
+
+            // Lấy thông tin partners
             $partners = $this->getPartnersByBooking($booking['id']);
-            $booking['partners'] = $partners; // trả về mảng partner
+            $booking['partners'] = $partners;
         }
 
         return $bookings;
     }
 
-    /**
-     * Lấy danh sách partner của 1 booking
-     */
     public function getPartnersByBooking($bookingId)
     {
         $sql = "
@@ -46,18 +58,14 @@ class Booking extends BaseModel
         return $this->queryAll($sql, ['booking_id' => $bookingId]);
     }
 
-    /**
-     * Lấy danh sách nhân viên
-     */
-    public function getAllStaff()
+    // THAY ĐỔI: Hàm lấy danh sách Hướng dẫn viên (Tên + Chứng chỉ)
+    // Hàm này được gọi ở BookingController -> create()
+    public function getAllHuongDanVien()
     {
-        $sql = "SELECT id, name FROM {$this->staffTable} ORDER BY name ASC";
+        $sql = "SELECT id, ho_ten, chung_chi FROM {$this->huongDanVienTable} ORDER BY ho_ten ASC";
         return $this->queryAll($sql);
     }
 
-    /**
-     * Lấy danh sách partner
-     */
     public function getAllPartners()
     {
         $sql = "SELECT id, name FROM {$this->partnerTable} ORDER BY name ASC";  
@@ -65,25 +73,28 @@ class Booking extends BaseModel
     }
 
     /**
-     * Lấy danh sách tour
+     * Lấy danh sách tour, kèm giá
      */
     public function getAllTours()
     {
-        $sql = "SELECT id, name FROM {$this->tourTable} ORDER BY name ASC";
+        $sql = "SELECT id, name, price FROM {$this->tourTable} ORDER BY name ASC";
         return $this->queryAll($sql);
     }
 
     /**
-     * Tạo booking mới (có thể kèm nhiều partner)
-     * $data: mảng dữ liệu booking
-     * $partnerIds: mảng id partner
+     * Lấy tour theo tên (để tính tổng tiền)
      */
+    public function getTourByName($name)
+    {
+        $sql = "SELECT id, name, price FROM {$this->tourTable} WHERE name = :name LIMIT 1";
+        return $this->queryOne($sql, ['name' => $name]);
+    }
+
     public function createBooking($data, $partnerIds = [])
     {
-        // 1. Insert booking
+        // $data bây giờ sẽ chứa key 'huong_dan_vien_id' từ Controller gửi sang
         $bookingId = $this->insert($data);
 
-        // 2. Gắn partner nếu có
         if ($bookingId && !empty($partnerIds)) {
             foreach ($partnerIds as $partnerId) {
                 $this->insert([
@@ -96,9 +107,6 @@ class Booking extends BaseModel
         return $bookingId;
     }
 
-    /**
-     * Lấy trạng thái hiện tại của booking
-     */
     public function getBookingStatus($id)
     {
         $sql = "SELECT status FROM {$this->table} WHERE id = :id";
@@ -106,63 +114,41 @@ class Booking extends BaseModel
         return $result['status'] ?? null;
     }
 
-    /**
-     * Thêm lịch sử booking
-     */
     public function insertHistory($historyData)
     {
         return $this->insert($historyData, $this->historyTable);
     }
 
-    /**
-     * Cập nhật trạng thái + lưu lịch sử
-     */
     public function updateStatus($id, $newStatus)
     {
         $oldStatus = $this->getBookingStatus($id);
 
-        // Nếu không thay đổi thì bỏ qua
-        if ($oldStatus === $newStatus) {
-            return true;
-        }
+        if ($oldStatus === $newStatus) return true;
 
-        // Cập nhật bảng bookings
         $updateSql = "UPDATE {$this->table} SET status = :status WHERE id = :id";
-        $updateResult = $this->query($updateSql, [
-            'status' => $newStatus,
-            'id' => $id
-        ]);
+        $updateResult = $this->query($updateSql, ['status' => $newStatus, 'id' => $id]);
 
         if ($updateResult) {
-            // Lưu lịch sử trạng thái
             $historyData = [
                 'booking_id' => $id,
                 'old_status' => $oldStatus,
                 'new_status' => $newStatus,
                 'changed_at' => date('Y-m-d H:i:s')
             ];
-
             return $this->insertHistory($historyData);
         }
 
         return false;
     }
 
-    /**
-     * Lịch sử trạng thái booking
-     */
     public function history($bookingId)
     {
         $sql = "
-            SELECT 
-                old_status, 
-                new_status, 
-                changed_at 
+            SELECT old_status, new_status, changed_at
             FROM {$this->historyTable}
             WHERE booking_id = :id
             ORDER BY changed_at DESC
         ";
-
         return $this->queryAll($sql, ['id' => $bookingId]);
     }
 }

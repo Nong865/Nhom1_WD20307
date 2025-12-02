@@ -13,8 +13,11 @@ class BookingController
     // Hiển thị form tạo booking
     public function create()
     {
-        $staffs   = $this->booking->getAllStaff(); 
-        $partners = $this->booking->getAllPartners(); // danh sách partner
+        // THAY ĐỔI: Lấy danh sách Hướng dẫn viên (Tên + Chứng chỉ) thay vì staff
+        // Bạn nhớ viết hàm getAllHuongDanVien() trong Model để select id, ho_ten, chung_chi nhé
+        $huongDanViens = $this->booking->getAllHuongDanVien(); 
+        
+        $partners = $this->booking->getAllPartners();
         $tours    = $this->booking->getAllTours();
 
         include __DIR__ . '/../views/bookings/create.php';
@@ -28,15 +31,18 @@ class BookingController
             exit;
         }
 
-        $customer_name   = $_POST['customer_name'] ?? '';
-        $customer_phone  = $_POST['customer_phone'] ?? '';
-        $tour_name       = $_POST['tour_name'] ?? '';
-        $tour_date       = $_POST['tour_date'] ?? '';
-        $special_request = $_POST['special_request'] ?? '';
-        $type            = $_POST['type'] ?? '';
+        $customer_name    = $_POST['customer_name'] ?? '';
+        $customer_phone   = $_POST['customer_phone'] ?? '';
+        $tour_name        = $_POST['tour_name'] ?? '';
+        $tour_date        = $_POST['tour_date'] ?? '';
+        $special_request  = $_POST['special_request'] ?? '';
+        $type             = $_POST['type'] ?? '';
 
-        $staff_id       = isset($_POST['staff_id']) ? (int)$_POST['staff_id'] : null;
-        $partnerIds     = $_POST['partner_ids'] ?? []; // ⭐ Nhận mảng partner_ids từ form
+        // THAY ĐỔI: Lấy ID hướng dẫn viên từ form
+        // (Lưu ý: Bên view create.php thẻ select cần có name="huong_dan_vien_id")
+        $huong_dan_vien_id = isset($_POST['huong_dan_vien_id']) ? (int)$_POST['huong_dan_vien_id'] : null;
+        
+        $partnerIds       = $_POST['partner_ids'] ?? [];
 
         // Nếu khách lẻ → số lượng = 1
         if ($type === 'individual') {
@@ -53,21 +59,30 @@ class BookingController
             return;
         }
 
+        // Lấy giá tour từ model theo tên tour
+        $tour = $this->booking->getTourByName($tour_name);
+        $price_per_person = $tour ? (float)$tour['price'] : 0;
+        $total_price = $price_per_person * $quantity;
+
         $data = [
-            'customer_name'  => $customer_name,
-            'customer_phone' => $customer_phone,
-            'quantity'       => $quantity,
-            'tour_name'      => $tour_name,
-            'tour_date'      => $tour_date,
-            'special_request'=> $special_request,
-            'type'           => $type,
-            'status'         => 'Chờ xác nhận',
-            'booking_date'   => date('Y-m-d H:i:s'),
-            'staff_id'       => $staff_id
-            // ⭐ partner_id bỏ đi, dùng mảng partnerIds
+            'customer_name'     => $customer_name,
+            'customer_phone'    => $customer_phone,
+            'quantity'          => $quantity,
+            'tour_name'         => $tour_name,
+            'tour_date'         => $tour_date,
+            'special_request'   => $special_request,
+            'type'              => $type,
+            'status'            => 'Chờ xác nhận',
+            'booking_date'      => date('Y-m-d H:i:s'),
+            
+            // THAY ĐỔI: Lưu ID hướng dẫn viên vào mảng data
+            // (Lưu ý: Cột trong bảng 'bookings' nên đổi từ staff_id thành huong_dan_vien_id cho đồng bộ)
+            'huong_dan_vien_id' => $huong_dan_vien_id, 
+            
+            'total_price'       => $total_price, 
         ];
 
-        $this->booking->createBooking($data, $partnerIds); // truyền mảng partner_ids
+        $this->booking->createBooking($data, $partnerIds);
 
         header("Location: index.php?action=bookingIndex");
         exit;
