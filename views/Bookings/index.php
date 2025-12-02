@@ -5,136 +5,177 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Danh sách Booking</title>
 
+    <!-- Bootstrap 5 + Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background-color: #f5f7fa; }
+        .card { border: none; border-radius: 12px; overflow: hidden; }
+        .table thead { background-color: #2c3e50; }
+        .badge { font-size: 12.5px; padding: 6px 10px; }
+        .text-price { font-weight: 600; color: #e74c3c; }
+        .btn-group .btn { padding: 5px 10px; }
+        tr:hover { background-color: #f8f9fa !important; }
+    </style>
 </head>
 <body>
 
-<div class="container-fluid mt-4">
+<div class="container-fluid py-4">
 
-    <h1 class="mb-4 text-primary"><i class="fas fa-list-alt me-2"></i> Danh sách Booking</h1>
-
-    <div class="mb-3">
-        <a href="index.php?action=bookingCreate" class="btn btn-success">
-            <i class="fas fa-plus me-1"></i> Tạo booking mới
+    <!-- Tiêu đề + nút tạo mới -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0 text-primary fw-bold">
+            <i class="bi bi-bookmark-check-fill me-2"></i> Danh sách Booking
+        </h2>
+        <a href="index.php?action=bookingCreate" class="btn btn-success shadow-sm">
+            <i class="bi bi-plus-lg me-1"></i> Tạo booking mới
         </a>
     </div>
 
-    <?php
-        // Hàm xác định class badge theo trạng thái
-        function getStatusBadgeClass($status) {
-            return match($status) {
-                'Hoàn thành' => 'bg-success',
-                'Đã xác nhận' => 'bg-primary', 
-                'Đã cọc'=> 'bg-info text-dark',
-                'Chờ xác nhận' => 'bg-warning text-dark',
-                'Đã hủy' => 'bg-danger',
-                default => 'bg-secondary',
-            };
-        }
-    ?>
+    <!-- Thống kê nhanh -->
+    <div class="row mb-3 g-3">
+        <div class="col-auto">
+            <span class="text-muted small">Tổng: <strong class="text-dark"><?= count($bookings) ?></strong> booking</span>
+        </div>
+        <div class="col-auto">
+            <span class="text-muted small">Hôm nay: <strong class="text-primary"><?= date('d/m/Y') ?></strong></span>
+        </div>
+    </div>
 
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped table-hover align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Khách hàng</th>
-                    <th>SĐT</th>
-                    <th>Loại</th>
-                    <th>Số lượng</th>
-                    <th>Tour</th>
-                    <th>Giá 1 người (VNĐ)</th>
-                    <th>Tổng tiền (VNĐ)</th>
-                    <th>Hướng dẫn viên</th>
-                    
-                    <th>Nhà cung cấp</th> 
-                    <th>Ngày tour</th>
-                    <th>Ngày đặt</th>
-                    <th>Trạng thái</th>
-                    <th class="text-center">Hành động</th>
-                </tr>
-            </thead>
-            <tbody>
+    <!-- Bảng chính -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size: 14.5px;">
+                    <thead class="text-white">
+                        <tr>
+                            <th class="text-center" width="4%">#</th>
+                            <th width="13%">Khách hàng</th>
+                            <th width="9%">SĐT</th>
+                            <th width="6%">Loại</th>
+                            <th width="5%" class="text-center">SL</th>
+                            <th width="15%">Tour</th>
+                            <th width="9%" class="text-end">Giá 1 người</th>
+                            <th width="10%" class="text-end text-price">Tổng tiền</th>
+                            <th width="12%">HDV</th>
+                            <th width="12%">Nhà cung cấp</th>
+                            <th width="8%" class="text-center">Ngày tour</th>
+                            <th width="6%" class="text-center">Trạng thái</th>
+                            <th width="10%" class="text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
 
-            <?php if (!empty($bookings)): ?>
-                <?php foreach ($bookings as $b): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($b['id']) ?></td>
-                        <td><?= htmlspecialchars($b['customer_name']) ?></td>
-                        <td><?= htmlspecialchars($b['customer_phone']) ?></td>
-                        <td><?= htmlspecialchars($b['type'] ?? 'N/A') ?></td>
-                        <td><?= htmlspecialchars($b['quantity']) ?></td>
-                        <td><?= htmlspecialchars($b['tour_name']) ?></td>
-                        <td>
-                            <?= isset($b['total_price'], $b['quantity']) && $b['quantity'] > 0 
-                                ? number_format($b['total_price'] / $b['quantity'], 0, ',', '.') 
-                                : '0' ?>
-                        </td>
-                        <td>
-                            <?= isset($b['total_price']) 
-                                ? number_format($b['total_price'], 0, ',', '.') 
-                                : '0' ?>
-                        </td>
-                        
-                        <td>
-                            <?= htmlspecialchars($b['hdv_ho_ten'] ?? 'Chưa chỉ định') ?>
-                            <?php if (!empty($b['hdv_chung_chi'])): ?>
-                                <small class="d-block text-muted">(CC: <?= htmlspecialchars($b['hdv_chung_chi']) ?>)</small>
-                            <?php endif; ?>
-                        </td> 
-                        
-                        <td>
-                            <?php
+                    <?php if (empty($bookings)): ?>
+                        <tr>
+                            <td colspan="13" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox display-5 d-block mb-3"></i>
+                                <h5>Chưa có booking nào</h5>
+                            </td>
+                        </tr>
+                    <?php else: ?>
+                        <?php 
+                        function getStatusBadge($status) {
+                            return match($status) {
+                                'Hoàn thành'     => 'bg-success',
+                                'Đã xác nhận'    => 'bg-primary',
+                                'Đã cọc'         => 'bg-info text-dark',
+                                'Chờ xác nhận'   => 'bg-warning text-dark',
+                                'Đã hủy'         => 'bg-danger',
+                                default          => 'bg-secondary',
+                            };
+                        }
+                        ?>
+
+                        <?php foreach ($bookings as $index => $b): ?>
+                        <tr>
+                            <td class="text-center fw-bold text-muted"><?= $index + 1 ?></td>
+
+                            <td class="fw-semibold"><?= htmlspecialchars($b['customer_name']) ?></td>
+                            <td><?= htmlspecialchars($b['customer_phone']) ?></td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    <?= $b['type'] == 'group' ? 'Nhóm' : 'Lẻ' ?>
+                                </span>
+                            </td>
+                            <td class="text-center fw-bold"><?= $b['quantity'] ?></td>
+
+                            <td class="small">
+                                <div class="fw-semibold"><?= htmlspecialchars($b['tour_name']) ?></div>
+                            </td>
+
+                            <td class="text-end text-price">
+                                <?= number_format(($b['total_price'] ?? 0) / max(1, $b['quantity']), 0, ',', '.') ?>đ
+                            </td>
+                            <td class="text-end text-price fw-bold">
+                                <?= number_format($b['total_price'] ?? 0, 0, ',', '.') ?>đ
+                            </td>
+
+                            <td class="small">
+                                <div class="fw-semibold"><?= htmlspecialchars($b['hdv_ho_ten'] ?? 'Chưa có') ?></div>
+                                <?php if (!empty($b['hdv_chung_chi'])): ?>
+                                    <small class="text-muted">(<?= htmlspecialchars($b['hdv_chung_chi']) ?>)</small>
+                                <?php endif; ?>
+                            </td>
+
+                            <td class="small text-muted" style="max-width: 180px;">
+                                <?php
                                 if (!empty($b['partners']) && is_array($b['partners'])) {
-                                    $partnerNames = array_map(fn($p) => $p['name'], $b['partners']);
-                                    echo htmlspecialchars(implode(', ', $partnerNames));
+                                    $names = array_map(fn($p) => $p['name'], $b['partners']);
+                                    echo implode(', ', $names);
                                 } else {
-                                    echo 'N/A';
+                                    echo '<em>—</em>';
                                 }
-                            ?>
-                        </td>
-                        <td><?= htmlspecialchars($b['tour_date']) ?></td>
-                        <td><?= htmlspecialchars($b['booking_date']) ?></td>
-                        <td>
-                            <span class="badge <?= getStatusBadgeClass($b['status']) ?>">
-                                <?= htmlspecialchars($b['status']) ?>
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            <form method="post" action="index.php?action=bookingUpdateStatus" class="d-inline-flex gap-2 align-items-center">
-                                <input type="hidden" name="id" value="<?= htmlspecialchars($b['id']) ?>">
-                                <select name="status" class="form-select form-select-sm">
-                                    <?php 
-                                    $statuses = ['Chờ xác nhận', 'Đã xác nhận', 'Đã hủy', 'Hoàn thành', 'Đã cọc'];
-                                    foreach ($statuses as $status): ?>
-                                        <option value="<?= $status ?>" <?= ($b['status'] == $status) ? 'selected' : '' ?>>
-                                            <?= $status ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <button type="submit" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-sync-alt"></i>
-                                </button>
-                            </form>
+                                ?>
+                            </td>
 
-                            <a href="index.php?action=bookingHistory&id=<?= htmlspecialchars($b['id']) ?>" 
-                               class="btn btn-secondary btn-sm ms-1">
-                                <i class="fas fa-history"></i> Lịch sử
-                            </a>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr>
-                    <td colspan="14" class="text-center text-muted py-3">
-                        Không có booking nào.
-                    </td>
-                </tr>
-            <?php endif; ?>
+                            <td class="text-center">
+                                <div class="small fw-bold text-primary">
+                                    <?= date('d/m', strtotime($b['tour_date'])) ?>
+                                </div>
+                                <small class="text-muted"><?= date('Y', strtotime($b['tour_date'])) ?></small>
+                            </td>
 
-            </tbody>
-        </table>
+                            <td class="text-center">
+                                <span class="badge <?= getStatusBadge($b['status']) ?> rounded-pill px-3">
+                                    <?= $b['status'] ?>
+                                </span>
+                            </td>
+
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+
+                                    <!-- Cập nhật trạng thái nhanh -->
+                                    <form method="post" action="index.php?action=bookingUpdateStatus" class="d-inline">
+                                        <input type="hidden" name="id" value="<?= $b['id'] ?>">
+                                        <select name="status" onchange="this.form.submit()" 
+                                                class="form-select form-select-sm d-inline-block" style="width: auto;">
+                                            <?php 
+                                            $options = ['Chờ xác nhận', 'Đã xác nhận', 'Đã cọc', 'Hoàn thành', 'Đã hủy'];
+                                            foreach ($options as $opt): ?>
+                                                <option value="<?= $opt ?>" <?= $b['status'] === $opt ? 'selected' : '' ?>>
+                                                    <?= $opt ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </form>
+
+                                    <!-- Xem lịch sử -->
+                                    <a href="index.php?action=bookingHistory&id=<?= $b['id'] ?>" 
+                                       class="btn btn-outline-secondary btn-sm" title="Lịch sử">
+                                        <i class="bi bi-clock-history"></i>
+                                    </a>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
 </div>
