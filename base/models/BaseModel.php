@@ -25,7 +25,12 @@ class BaseModel
     /* ============================================================
         QUERY CƠ BẢN
     ============================================================ */
-
+     public function queryOne($sql, $params = [])
+{
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetch(PDO::FETCH_ASSOC); // Trả về một bản ghi duy nhất
+}
     public function queryAll($sql, $params = [])
     {
         $stmt = $this->pdo->prepare($sql);

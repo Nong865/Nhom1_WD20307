@@ -31,6 +31,8 @@ $currentUser = $_SESSION['user'] ?? null;
         <?php if ($currentUser && $currentUser['role_id'] == 1): ?>
             <a class="nav-link <?= ($active ?? '') == 'user' ? 'active' : '' ?>" href="index.php?action=userIndex">Tài khoản</a>
         <?php endif; ?>
+         <a class="nav-link <?= ($active ?? '') == 'booking' ? 'active' : '' ?>" 
+           href="index.php?action=bookingIndex">Booking</a>
         <a class="nav-link text-danger" href="index.php?action=logout">Đăng xuất</a>
     </nav>
 </div>

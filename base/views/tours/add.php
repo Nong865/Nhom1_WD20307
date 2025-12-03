@@ -11,11 +11,32 @@
     <label>Mô tả:</label>
     <textarea name="description" class="form-control"></textarea>
 
-    <label>Ngày bắt đầu:</label>
-    <input name="start_date" type="date" class="form-control">
+    <label>Nhân sự (Hướng dẫn viên):</label>
+    <select name="staff_id" class="form-control">
+        <option value="">-- Chọn Hướng dẫn viên --</option>
+        <?php if (!empty($staffs)): ?>
+            <?php foreach($staffs as $staff): ?>
+                <option value="<?= $staff['id'] ?>"><?= $staff['name'] ?></option>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </select>
 
-    <label>Ngày kết thúc:</label>
-    <input name="end_date" type="date" class="form-control">
+
+    <label>Nhà cung cấp:</label>
+    <select name="supplier_id" class="form-control">
+        <option value="">-- Chọn Nhà cung cấp --</option>
+        <?php if (!empty($suppliers)): ?>
+            <?php foreach($suppliers as $supplier): ?>
+                <option value="<?= $supplier['id'] ?>"><?= $supplier['name'] ?></option>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </select>
+
+    <label>Ngày bắt đầu:</label>
+    <input name="start_date" type="date" class="form-control" required>
+
+    <label>Lịch trình (Số ngày):</label>
+    <input name="total_days" type="number" class="form-control" required min="1" placeholder="Nhập số ngày của tour (Ví dụ: 3)">
 
     <label>Ảnh chính:</label>
     <input type="file" name="main_image" class="form-control">

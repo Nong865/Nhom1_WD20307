@@ -62,9 +62,7 @@ switch ($action) {
     case "editTour": (new TourController())->edit(); break;
     case "updateTour": (new TourController())->update(); break;
     case "deleteTour": (new TourController())->delete(); break;
-   case "tourCategory":
-    (new TourController())->category();
-    break;
+ 
 
 
     /* ====== TOUR – ITINERARY ====== */
@@ -110,7 +108,33 @@ switch ($action) {
         $operation->deleteSchedule();
         break;
 
+
+
+        //booking
+case "bookingIndex":
+    require_once "controllers/BookingController.php";
+    (new BookingController())->index();
+    break;
+
+case "bookingCreate":
+    require_once "controllers/BookingController.php";
+    (new BookingController())->create();
+    break;
+
+case "bookingHistory":
+    require_once "controllers/BookingController.php";
+    (new BookingController())->history();
+    break;
+case "bookingUpdateStatus":
+    require_once "controllers/BookingController.php";
+    (new BookingController())->updateStatus();
+    break;
+case "bookingStore":
+    require_once "controllers/BookingController.php";
+    (new BookingController())->store();
+    break;
     /* ====== ROUTE DEFAULT ====== */
+
     default:
         echo "❌ Không tìm thấy route!";
         break;
