@@ -133,6 +133,27 @@ case "bookingStore":
     require_once "controllers/BookingController.php";
     (new BookingController())->store();
     break;
+
+     /* ---------- ALBUM TOUR ---------- */
+    case 'viewAlbum': // Hiển thị tất cả ảnh của tour
+        require_once "controllers/TourController.php";
+        (new TourController)->viewAlbum();
+        break;
+        
+    case 'addPhoto': // Form thêm ảnh mới
+        require_once "controllers/TourController.php";
+        (new TourController)->addPhoto();
+        break;
+        
+    case 'savePhoto': // Xử lý lưu ảnh mới (POST)
+        require_once "controllers/TourController.php";
+        (new TourController)->savePhoto();
+        break;
+        
+    case 'deletePhoto': // Xóa ảnh
+        require_once "controllers/TourController.php";
+        (new TourController)->deletePhoto();
+        break;  
     /* ====== ROUTE DEFAULT ====== */
 
     default:
