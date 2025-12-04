@@ -2,7 +2,6 @@
 
 $title = "Quản lý Danh mục Tour"; 
 // Bắt đầu bộ đệm đầu ra để lưu HTML vào biến $content
-ob_start();
 ?>
 
 <div class="container-fluid">
@@ -40,35 +39,33 @@ ob_start();
             <div class="table-responsive">
                 <table class="table table-bordered table-hover align-middle">
                     <thead>
-                        <tr>
-                            <th scope="col" style="width: 5%;">ID</th>
-                            <th scope="col" style="width: 70%;">Tên Danh mục</th>
-                            <th scope="col" style="width: 25%;">Hành động</th>
-                        </tr>
+                            <tr>
+                                <th scope="col" style="width: 5%;">ID</th>
+                                <th scope="col" style="width: 50%;">Tên Danh mục</th>
+                                <th scope="col" style="width: 15%;">Số Tour</th> <th scope="col" style="width: 30%;">Hành động</th>
+                            </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($categories)): ?>
-                            <?php foreach ($categories as $category): ?>
-                                <tr>
-                                    <th scope="row"><?= $category['id'] ?></th>
-                                    <td><?= htmlspecialchars($category['name']) ?></td>
-                                    <td>
-                                        <a href="index.php?action=CategoryEdit&id=<?= $category['id'] ?>" class="btn btn-sm btn-warning me-2">
-                                            Sửa
-                                        </a>
-                                        <a href="index.php?action=CategoryDelete&id=<?= $category['id'] ?>" 
-                                           class="btn btn-sm btn-danger"
-                                           onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục &quot;<?= htmlspecialchars($category['name']) ?>&quot; này?');">
-                                            Xóa
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
+                        <?php foreach ($categories as $category): ?>
                             <tr>
-                                <td colspan="3" class="text-center">Chưa có danh mục nào được thêm.</td>
+                                <th scope="row"><?= $category['id'] ?></th>
+                                <td><?= htmlspecialchars($category['name']) ?></td>
+                                
+                                <td><?= $category['tour_count'] ?></td> 
+                                
+                                <td>
+                                    <a href="index.php?action=editCategory&id=<?= $category['id'] ?>" class="btn btn-primary btn-sm me-2">
+                                        <i class="fas fa-edit"></i> Sửa
+                                    </a>
+                                    <a href="index.php?action=deleteCategory&id=<?= $category['id'] ?>" 
+                                       class="btn btn-danger btn-sm" 
+                                       onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục này không?');">
+                                        <i class="fas fa-trash-alt"></i> Xóa
+                                    </a>
+                                                
+                                </td>
                             </tr>
-                        <?php endif; ?>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
@@ -78,5 +75,4 @@ ob_start();
 </div>
 
 <?php 
-$content = ob_get_clean(); 
 ?>

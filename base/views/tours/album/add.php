@@ -1,5 +1,5 @@
 <?php
-include_once('../../../../public/html/header.php');
+include_once(__DIR__ . '/../../../../public/html/header.php');
 
 
 $base_path = '/duan1/tour-management-php/public/';

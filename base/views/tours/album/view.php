@@ -1,15 +1,15 @@
 <div class="container mt-4">
     <a href="index.php?action=listTours" class="btn btn-secondary mb-4">← Quay lại Danh sách Tour</a>
     
-    <h3 class="mb-3">🖼️ Album ảnh Tour: <b><?= $tour['name'] ?? 'Không tìm thấy Tour' ?></b></h3>
+    <h3 class="mb-3"> Album ảnh Tour: <b><?= $tour['name'] ?? 'Không tìm thấy Tour' ?></b></h3>
     
-    <a href="index.php?action=addPhoto&tour_id=<?= $tour['id'] ?>" class="btn btn-success mb-3">
-        + Thêm Ảnh mới
+    <a href="index.php?action=addPhotoForm&tour_id=<?= $tour['id'] ?>" class="btn btn-success mb-3">
+        Thêm Ảnh mới
     </a>
 
     <?php if (empty($photos)): ?>
         <div class="alert alert-warning" role="alert">
-            Album này hiện chưa có ảnh nào.
+            Album này hiện chưa có ảnh nào. Vui lòng thêm ảnh mới.
         </div>
     <?php else: ?>
         
@@ -17,7 +17,7 @@
             <?php foreach ($photos as $photo): ?>
                 <div class="col-md-4 mb-4">
                     <div class="card shadow-sm">
-                        <img src="<?= $photo['image_path'] ?>" class="card-img-top" alt="<?= $photo['caption'] ?>">
+                        <img src="/DA_Nhom1/base/<?= $photo['image_path'] ?>" class="card-img-top" alt="<?= $photo['caption'] ?>">
                         <div class="card-body">
                             <p class="card-text small"><?= htmlspecialchars($photo['caption'] ?? 'Chưa có chú thích') ?></p>
                             

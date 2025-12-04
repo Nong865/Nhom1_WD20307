@@ -48,6 +48,52 @@ class TourController {
 
         include dirname(__DIR__) . "/views/main.php";
     }
+    public function filterTours() {
+        $active = 'tour';
+        $message = $_GET['message'] ?? '';
+        
+        // LẤY ID DANH MỤC TỪ URL (index.php?action=filterTours&category_id=X)
+        $category_id_filter = $_GET['category_id'] ?? null; 
+
+        if (!empty($category_id_filter)) {
+            // Gọi Model để lấy danh sách tour đã lọc
+            $tours = $this->tourModel->getByCategory($category_id_filter);
+        } else {
+            // Nếu không có ID lọc, lấy tất cả tours
+            $tours = $this->tourModel->getAll();
+        }
+        
+        // Lấy tất cả danh mục (để hiển thị Select Box lọc)
+        $categories = $this->tourModel->getAllCategories();
+
+        // LOGIC TÍNH TOÁN SỐ NGÀY TOUR
+        foreach ($tours as $key => $tour) {
+            $tours[$key]['lich_trinh'] = 'Chưa xác định';
+            
+            if (!empty($tour['start_date']) && !empty($tour['end_date'])) {
+                try {
+                    $start = new DateTime($tour['start_date']);
+                    $end = new DateTime($tour['end_date']);
+                    $interval = $start->diff($end);
+                    $so_ngay = $interval->days + 1; 
+                    $tours[$key]['lich_trinh'] = $so_ngay . ' ngày'; 
+                } catch (Exception $e) {
+                    $tours[$key]['lich_trinh'] = 'Lỗi ngày tháng';
+                }
+            }
+        }
+        // KẾT THÚC LOGIC TÍNH TOÁN
+
+        $content = render("tours/list", [
+            'tours' => $tours,
+            'categories' => $categories, 
+            'category_id_filter' => $category_id_filter, 
+            'message' => $message,
+            'active' => $active
+        ]);
+
+        include dirname(__DIR__) . "/views/main.php";
+    }
 
     /**
      * Phương thức hiển thị form thêm tour mới
@@ -394,6 +440,32 @@ class TourController {
 
         include dirname(__DIR__) . "/views/main.php";
     }
+     public function addPhotoForm()
+{
+    // Lấy ID Tour từ URL: index.php?action=addPhotoForm&tour_id=X
+    $tourId = $_GET['tour_id'] ?? null;
+    
+    // Kiểm tra và lấy thông tin Tour
+    $tour = $this->tourModel->find($tourId); // Dùng hàm find() đã có
+    
+    if (!$tour) {
+        header('Location: index.php?action=listTours&message=Tour không tồn tại.&type=danger');
+        exit;
+    }
+
+    // Chuẩn bị biến cho layout
+    $title = 'Thêm Ảnh vào Album Tour: ' . $tour['name'];
+    $active = 'tour'; 
+
+    // Render View chứa form upload (views/tours/album/add.php)
+    $content = render("tours/album/add", [ 
+        'tour' => $tour,
+        'title' => $title
+    ]);
+
+    // Load Layout Chính
+    include dirname(__DIR__) . "/views/main.php"; 
+}
 
     /**
      * Xử lý lưu ảnh mới

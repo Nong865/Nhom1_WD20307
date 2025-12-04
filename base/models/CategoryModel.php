@@ -8,12 +8,20 @@ class CategoryModel extends BaseModel
     protected $table = "categories";
 
     /**
-     * Lấy tất cả danh mục
-     * (Chúng ta sẽ không cần getAllCategories() trong TourModel nữa nếu dùng Model này)
+     * Lấy tất cả danh mục kèm theo số lượng Tour liên quan (tour_count)
+     * @return array Danh sách danh mục kèm số lượng tour
      */
     public function getAll()
     {
-        $stmt = $this->pdo->prepare("SELECT id, name FROM {$this->table} ORDER BY name ASC");
+        $sql = "SELECT 
+                    c.*, 
+                    COUNT(t.id) AS tour_count
+                FROM categories c
+                LEFT JOIN tours t ON c.id = t.category_id
+                GROUP BY c.id, c.name, c.created_at /* GROUP BY tất cả các cột không phải là aggregate (đã thêm c.created_at) */
+                ORDER BY c.id DESC";
+
+        $stmt = $this->pdo->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -60,7 +68,7 @@ class CategoryModel extends BaseModel
      */
     public function delete($id)
     {
-        // Lưu ý: Cần xử lý liên kết tour trước khi xóa danh mục
+        // Lưu ý: Cần xử lý liên kết tour trước khi gọi hàm này (đã xử lý trong Controller)
         $stmt = $this->pdo->prepare("DELETE FROM {$this->table} WHERE id=?");
         return $stmt->execute([$id]);
     }

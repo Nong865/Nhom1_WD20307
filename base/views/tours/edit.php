@@ -14,6 +14,24 @@
     <label>Mô tả:</label>
     <textarea name="description" class="form-control"><?= $tour['description'] ?? '' ?></textarea>
 
+    <label>Danh mục Tour:</label>
+    <select name="category_id" class="form-control" required>
+        <option value="">-- Chọn Danh mục Tour --</option>
+        <?php 
+        // Biến $categories đã được truyền từ TourController
+        if (!empty($categories)): 
+            foreach($categories as $category): 
+        ?>
+            <option 
+                value="<?= $category['id'] ?>"
+                <?= (isset($tour['category_id']) && $tour['category_id'] == $category['id']) ? 'selected' : '' ?>>
+                <?= $category['name'] ?>
+            </option>
+        <?php 
+            endforeach; 
+        endif; 
+        ?>
+    </select>
     <label>Nhân sự (Hướng dẫn viên):</label>
     <select name="staff_id" class="form-control">
         <option value="">-- Chọn Hướng dẫn viên --</option>
@@ -49,8 +67,11 @@
         <img src="<?= $tour['main_image'] ?>" width="120">
     <?php endif; ?>
 
-    <label>Upload ảnh mới:</label>
+    <label>Upload ảnh mới (Nếu muốn thay đổi):</label>
     <input type="file" name="main_image" class="form-control">
 
-    <button class="btn btn-primary mt-3">Cập nhật</button>
+    <button class="btn btn-primary mt-3">
+        <i class="fas fa-edit"></i> Cập nhật
+    </button>
+    <a href="index.php?action=listTours" class="btn btn-secondary mt-3">Hủy</a>
 </form>

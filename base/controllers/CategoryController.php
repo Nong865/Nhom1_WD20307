@@ -1,18 +1,20 @@
 <?php
 require_once dirname(__DIR__) . '/configs/helper.php'; 
 require_once dirname(__DIR__) . '/models/CategoryModel.php';
+require_once dirname(__DIR__) . '/models/TourModel.php';
 
 class CategoryController
 {
     private $categoryModel;
+    private $tourModel; // <-- KHAI BÁO BIẾN CHO TOUR MODEL
 
     public function __construct()
     {
         $this->categoryModel = new CategoryModel();
+        $this->tourModel = new TourModel(); // <-- KHỞI TẠO TOUR MODEL
     }
 
-    // Action: index (index.php?controller=Category&action=index)
-    // Hiển thị danh sách Danh mục và Form Thêm mới
+    // Action: index (Hiển thị danh sách Danh mục và Form Thêm mới)
     public function index()
     {
         // 1. Lấy tất cả danh mục
@@ -39,35 +41,34 @@ class CategoryController
     public function store()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: index.php?controller=Category&action=index');
+            header('Location: index.php?action=tourCategory'); // Đã sửa tên route
             exit;
         }
 
         $data = ['name' => trim($_POST['name'] ?? '')];
 
         if (empty($data['name'])) {
-            header('Location: index.php?controller=Category&action=index&message=Tên danh mục không được để trống&type=danger');
+            header('Location: index.php?action=tourCategory&message=Tên danh mục không được để trống&type=danger');
             exit;
         }
 
         $result = $this->categoryModel->insert($data);
 
         if ($result) {
-            header('Location: index.php?controller=Category&action=index&message=Thêm danh mục thành công&type=success');
+            header('Location: index.php?action=tourCategory&message=Thêm danh mục thành công&type=success');
         } else {
-            header('Location: index.php?controller=Category&action=index&message=Lỗi cơ sở dữ liệu khi thêm&type=danger');
+            header('Location: index.php?action=tourCategory&message=Lỗi cơ sở dữ liệu khi thêm&type=danger');
         }
         exit;
     }
 
-    // Action: edit (index.php?controller=Category&action=edit&id=X)
-    // Hiển thị form chỉnh sửa
+    // Action: edit (Hiển thị form chỉnh sửa)
     public function edit()
     {
         $id = $_GET['id'] ?? null;
         
         if (!$id || !($category = $this->categoryModel->find($id))) {
-            header('Location: index.php?controller=Category&action=index&message=Không tìm thấy danh mục&type=danger');
+            header('Location: index.php?action=tourCategory&message=Không tìm thấy danh mục&type=danger');
             exit;
         }
         
@@ -92,7 +93,7 @@ class CategoryController
     public function update()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: index.php?controller=Category&action=index');
+            header('Location: index.php?action=tourCategory');
             exit;
         }
         
@@ -100,50 +101,47 @@ class CategoryController
         $data = ['name' => trim($_POST['name'] ?? '')];
 
         if (!$id) {
-            header('Location: index.php?controller=Category&action=index&message=Thiếu ID danh mục&type=danger');
+            header('Location: index.php?action=tourCategory&message=Thiếu ID danh mục&type=danger');
             exit;
         }
         
         if (empty($data['name'])) {
-            header('Location: index.php?controller=Category&action=edit&id='.$id.'&message=Tên danh mục không được để trống&type=danger');
+            header('Location: index.php?action=CategoryEdit&id='.$id.'&message=Tên danh mục không được để trống&type=danger');
             exit;
         }
 
         $result = $this->categoryModel->update($id, $data);
 
         if ($result) {
-            header('Location: index.php?controller=Category&action=index&message=Cập nhật danh mục thành công&type=success');
+            header('Location: index.php?action=tourCategory&message=Cập nhật danh mục thành công&type=success');
         } else {
-            header('Location: index.php?controller=Category&action=index&message=Lỗi cơ sở dữ liệu khi cập nhật&type=danger');
+            header('Location: index.php?action=tourCategory&message=Lỗi cơ sở dữ liệu khi cập nhật&type=danger');
         }
         exit;
     }
     
-    // Action: delete (index.php?controller=Category&action=delete&id=X)
+    // Action: delete (Xử lý xóa)
     public function delete()
-{
-    $id = $_GET['id'] ?? null;
+    {
+        $id = $_GET['id'] ?? null;
 
-    if (!$id) {
-        header('Location: index.php?controller=Category&action=index&message=Thiếu ID danh mục cần xóa&type=danger');
+        if (!$id) {
+            header('Location: index.php?action=tourCategory&message=Thiếu ID danh mục cần xóa&type=danger');
+            exit;
+        }
+        
+        // 1. Đặt category_id của tất cả các tour liên quan về NULL
+        // Sử dụng $this->tourModel đã được khởi tạo trong constructor
+        $this->tourModel->setCategoryToNull($id); 
+
+        // 2. Tiến hành xóa Danh mục (sau khi đã xử lý khóa ngoại)
+        $result = $this->categoryModel->delete($id);
+
+        if ($result) {
+            header('Location: index.php?action=tourCategory&message=Xóa danh mục thành công&type=success');
+        } else {
+            header('Location: index.php?action=tourCategory&message=Xóa danh mục thất bại&type=danger');
+        }
         exit;
     }
-    
-    // BỔ SUNG: Logic xử lý các Tour đang dùng Danh mục này (tránh lỗi khóa ngoại)
-    // 1. Khởi tạo TourModel (đã require_once ở trên)
-    $tourModel = new TourModel(); 
-    
-    // 2. Đặt category_id của tất cả các tour liên quan về NULL
-    $tourModel->setCategoryToNull($id); 
-
-    // 3. Tiến hành xóa Danh mục (sau khi đã xử lý khóa ngoại)
-    $result = $this->categoryModel->delete($id);
-
-    if ($result) {
-        header('Location: index.php?controller=Category&action=index&message=Xóa danh mục thành công&type=success');
-    } else {
-        header('Location: index.php?controller=Category&action=index&message=Xóa danh mục thất bại&type=danger');
-    }
-    exit;
-}
 }
