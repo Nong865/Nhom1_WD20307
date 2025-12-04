@@ -8,6 +8,7 @@ class BaseModel
 
     public function __construct()
     {
+        // Giả sử các hằng số DB đã được định nghĩa
         $dsn = sprintf(
             'mysql:host=%s;port=%s;dbname=%s;charset=utf8',
             DB_HOST,
@@ -16,6 +17,7 @@ class BaseModel
         );
 
         try {
+            // Giả sử các hằng số DB_USERNAME, DB_PASSWORD, DB_OPTIONS đã được định nghĩa
             $this->pdo = new PDO($dsn, DB_USERNAME, DB_PASSWORD, DB_OPTIONS);
         } catch (PDOException $e) {
             die("Lỗi kết nối CSDL: " . $e->getMessage());
@@ -23,14 +25,36 @@ class BaseModel
     }
 
     /* ============================================================
-        QUERY CƠ BẢN
+        QUERY CƠ BẢN (EXECUTE, ALL, ONE)
     ============================================================ */
-     public function queryOne($sql, $params = [])
-{
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->execute($params);
-    return $stmt->fetch(PDO::FETCH_ASSOC); // Trả về một bản ghi duy nhất
-}
+
+    /**
+     * Thực thi SQL (UPDATE, DELETE, INSERT) và trả về kết quả execution (bool)
+     */
+    public function queryExecute($sql, $params = [])
+    {
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            return $stmt->execute($params); 
+        } catch (PDOException $e) {
+            // error_log("Lỗi thực thi SQL: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Thực thi SQL và lấy một bản ghi duy nhất
+     */
+    public function queryOne($sql, $params = [])
+    {
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Thực thi SQL và lấy TẤT CẢ các bản ghi
+     */
     public function queryAll($sql, $params = [])
     {
         $stmt = $this->pdo->prepare($sql);
@@ -38,13 +62,19 @@ class BaseModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-   public function query($sql, $params = [])
-{
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->execute($params);
-    return $stmt;
-}
+    /**
+     * Thực thi SQL và trả về đối tượng Statement (dùng cho các truy vấn phức tạp hoặc fetch sau)
+     */
+    public function query($sql, $params = [])
+    {
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt;
+    }
 
+    /**
+     * Thực thi SQL và trả về lastInsertId (dùng cho INSERT không an toàn/cũ)
+     */
     public function insertRaw($sql, $params = [])
     {
         $stmt = $this->pdo->prepare($sql);
@@ -53,7 +83,7 @@ class BaseModel
     }
 
     /* ============================================================
-        CRUD CHÍNH
+        CRUD CHÍNH & MỞ RỘNG
     ============================================================ */
 
     // Lấy toàn bộ dữ liệu
@@ -72,14 +102,17 @@ class BaseModel
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Thêm mới
-    public function insert($data)
+    /**
+     * Thêm mới bản ghi (hỗ trợ tên bảng tùy chỉnh, cần cho Booking/History)
+     */
+    public function insert($data, $tableName = null)
     {
+        $targetTable = $tableName ?? $this->table; // Chọn tên bảng mặc định hoặc tùy chỉnh
         $fields = array_keys($data);
         $columns = implode(",", $fields);
         $placeholders = implode(",", array_fill(0, count($fields), '?'));
 
-        $sql = "INSERT INTO {$this->table} ($columns) VALUES ($placeholders)";
+        $sql = "INSERT INTO {$targetTable} ($columns) VALUES ($placeholders)";
         $stmt = $this->pdo->prepare($sql);
 
         $stmt->execute(array_values($data));
@@ -108,28 +141,26 @@ class BaseModel
         return $stmt->execute([$id]);
     }
 
+    /**
+     * Lấy tất cả Hướng dẫn viên theo nhóm (Hàm bổ sung)
+     */
+    public function getAllByGroup($groupId)
+    {
+        $sql = "
+            SELECT h.*, GROUP_CONCAT(n.ten_nhom SEPARATOR ', ') AS nhom
+            FROM huong_dan_vien h
+            INNER JOIN hdv_nhom hn ON h.id = hn.hdv_id
+            INNER JOIN nhom_hdv n ON hn.nhom_id = n.id
+            WHERE n.id = ?
+            GROUP BY h.id, h.ho_ten, h.cccd, h.sdt, h.chung_chi, h.kinh_nghiem, h.luong /* Thêm các cột HDV khác vào GROUP BY */
+            ORDER BY h.id DESC
+        ";
+        return $this->queryAll($sql, [$groupId]);
+    }
+
     // Hủy kết nối
     public function __destruct()
     {
         $this->pdo = null;
     }
-   public function getAllByGroup($groupId)
-{
-    $sql = "
-        SELECT h.*, GROUP_CONCAT(n.ten_nhom SEPARATOR ', ') AS nhom
-        FROM huong_dan_vien h
-        INNER JOIN hdv_nhom hn ON h.id = hn.hdv_id
-        INNER JOIN nhom_hdv n ON hn.nhom_id = n.id
-        WHERE n.id = ?
-        GROUP BY h.id
-        ORDER BY h.id DESC
-    ";
-    return $this->queryAll($sql, [$groupId]);
 }
-
-
-
-
-}
-    
-        

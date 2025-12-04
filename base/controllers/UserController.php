@@ -4,16 +4,27 @@ require_once "./models/User.php";
 
 class UserController {
 
-    public function index() {
-        requireRole([1]);
-        $model = new User();
-        $users = $model->getAll();
+   public function index() {
+    // 1. Kiểm tra quyền và Lấy dữ liệu
+    requireRole([1]); // Giả sử hàm này kiểm tra quyền Admin
+    $model = new User(); // Giả sử class User là Model
+    $users = $model->getAll();
 
-        $active = 'user';
-        $content = "./views/user/index.php";
+    // 2. Định nghĩa các biến cho Layout
+    $active = 'user';
+    $title = 'Quản lý Tài khoản'; // Đặt tiêu đề trang
 
-        require "./views/main.php";
-    }
+    // 3. Dùng hàm render() để tải View và lưu nội dung vào $content
+    // Giả sử View nằm ở views/user/index.php
+    $content = render("user/index", [
+        'users' => $users,
+        'title' => $title,
+        'active' => $active
+    ]);
+
+    // 4. Load Layout Chính (File main.php sẽ hiển thị biến $content)
+    require dirname(__DIR__) . "/views/main.php"; 
+}
 
     public function create() {
         requireRole([1]);

@@ -1,6 +1,6 @@
 <h3>Danh sách tài khoản</h3>
 
-<a href="index.php?action=userCreate" class="btn btn-primary mb-3">+ Thêm tài khoản</a>
+<a href="index.php?action=userCreate" class="btn btn-primary mb-3">Thêm tài khoản</a>
 
 <table class="table table-bordered table-hover">
     <thead>

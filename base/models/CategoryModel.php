@@ -31,7 +31,7 @@ class CategoryModel extends BaseModel
      * @param array $data chứa 'name'
      * @return bool
      */
-    public function insert($data)
+    public function insert($data, $tableName = null)
     {
         $stmt = $this->pdo->prepare("INSERT INTO {$this->table} (name) VALUES (?)");
         return $stmt->execute([$data['name']]);

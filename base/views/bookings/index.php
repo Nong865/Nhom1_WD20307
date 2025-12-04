@@ -118,16 +118,16 @@
                                 <?php endif; ?>
                             </td>
 
-                            <td class="small text-muted" style="max-width: 180px;">
-                                <?php
-                                if (!empty($b['partners']) && is_array($b['partners'])) {
-                                    $names = array_map(fn($p) => $p['name'], $b['partners']);
-                                    echo implode(', ', $names);
-                                } else {
-                                    echo '<em>—</em>';
-                                }
-                                ?>
-                            </td>
+                           <td class="small text-muted" style="max-width: 180px;">
+    <?php
+    if (!empty($b['partners']) && is_array($b['partners'])) {
+        $names = array_map(fn($p) => $p['name'], $b['partners']);
+        echo implode(', ', $names);
+    } else {
+        echo '<em>—</em>'; // Hiển thị '—' khi mảng rỗng
+    }
+    ?>
+</td>
 
                             <td class="text-center">
                                 <div class="small fw-bold text-primary">
@@ -168,6 +168,32 @@
                                     </a>
                                 </div>
                             </td>
+                            <td class="text-center">
+    <div class="btn-group btn-group-sm" role="group">
+        
+        <a href="index.php?action=bookingDetail&id=<?= $b['id'] ?>" 
+           class="btn btn-outline-info btn-sm" title="Chi tiết">
+            <i class="bi bi-eye"></i>
+        </a>
+        
+        <a href="index.php?action=bookingEdit&id=<?= $b['id'] ?>" 
+           class="btn btn-outline-warning btn-sm" title="Sửa">
+            <i class="bi bi-pencil"></i>
+        </a>
+
+        <a href="index.php?action=bookingDelete&id=<?= $b['id'] ?>" 
+           class="btn btn-outline-danger btn-sm" 
+           onclick="return confirm('Bạn có chắc chắn muốn xóa Booking #<?= $b['id'] ?>?')" 
+           title="Xóa">
+            <i class="bi bi-trash"></i>
+        </a>
+        
+        <form method="post" action="index.php?action=bookingUpdateStatus" class="d-inline">
+            </form>
+
+       
+    </div>
+</td>
                         </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>

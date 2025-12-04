@@ -10,6 +10,7 @@ require_once "controllers/HdvController.php";
 require_once "controllers/TourController.php";
 require_once "controllers/SupplierController.php";
 require_once "controllers/CategoryController.php";
+require_once "controllers/BookingController.php";
 // require_once "controllers/TourOperationController.php";
 
 /* Instance controller cho phần Operation */
@@ -138,34 +139,44 @@ switch ($action) {
 
 
         //booking
-case "bookingIndex":
-    require_once "controllers/BookingController.php";
-    (new BookingController())->index();
-    break;
-
-case "bookingCreate":
-    require_once "controllers/BookingController.php";
-    (new BookingController())->create();
-    break;
-
-case "bookingHistory":
-    require_once "controllers/BookingController.php";
-    (new BookingController())->history();
-    break;
-case "bookingUpdateStatus":
-    require_once "controllers/BookingController.php";
-    (new BookingController())->updateStatus();
-    break;
-case "bookingStore":
-    require_once "controllers/BookingController.php";
-    (new BookingController())->store();
-    break;
-
-     /* ---------- ALBUM TOUR ---------- */
-    case 'viewAlbum': // Hiển thị tất cả ảnh của tour
-        require_once "controllers/TourController.php";
-        (new TourController)->viewAlbum();
+    case "bookingIndex":
+        (new BookingController())->index();
         break;
+
+    case "bookingCreate":
+        (new BookingController())->create();
+        break;
+
+    case "bookingHistory":
+        (new BookingController())->history();
+        break;
+    case "bookingUpdateStatus":
+        (new BookingController())->updateStatus();
+        break;
+    case "bookingStore":
+        (new BookingController())->store();
+        break;
+        case "bookingDetail": // Xem chi tiết một Booking (thường dùng ID: ?action=bookingDetail&id=X)
+        (new BookingController())->detail();
+        break;
+        
+    case "bookingEdit": // Hiển thị form chỉnh sửa Booking
+        (new BookingController())->edit();
+        break;
+        
+    case "bookingUpdate": // Xử lý POST cập nhật Booking
+        (new BookingController())->update();
+        break;
+        
+    case "bookingDelete": // Xử lý xóa Booking
+        (new BookingController())->delete();
+        break;
+
+        /* ---------- ALBUM TOUR ---------- */
+        case 'viewAlbum': // Hiển thị tất cả ảnh của tour
+            require_once "controllers/TourController.php";
+            (new TourController)->viewAlbum();
+            break;
     
         
     case 'addPhoto':
