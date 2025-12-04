@@ -76,7 +76,7 @@ class TourModel extends BaseModel
             $tour['category_name'] = $tour['category_name'] ?? 'Chưa gán'; 
 
             // Album ảnh
-$stmt4 = $this->pdo->prepare("SELECT image_path AS image, caption FROM photos WHERE tour_id=?");
+            $stmt4 = $this->pdo->prepare("SELECT image_path AS image, caption FROM photos WHERE tour_id=?");
             $stmt4->execute([$tour['id']]);
             $tour['album'] = $stmt4->fetchAll(PDO::FETCH_ASSOC);
             
@@ -161,12 +161,47 @@ $stmt4 = $this->pdo->prepare("SELECT image_path AS image, caption FROM photos WH
     /**
      * Lấy tour theo Danh mục (dùng để lọc)
      */
-    public function getByCategory($categoryId)
-    {
-        $stmt = $this->pdo->prepare("SELECT * FROM {$this->table} WHERE category_id = ? ORDER BY id ASC");
-        $stmt->execute([$categoryId]);
-return $stmt->fetchAll(PDO::FETCH_ASSOC);
+   public function getByCategory($categoryId)
+{
+    $sql = "SELECT 
+                t.*, 
+                hdv.ho_ten AS hdv_name, 
+                p.name AS ncc_name,
+                c.name AS category_name 
+            FROM {$this->table} t
+            LEFT JOIN huong_dan_vien hdv ON t.staff_id = hdv.id
+            LEFT JOIN partners p ON t.supplier_id = p.id
+            LEFT JOIN categories c ON t.category_id = c.id
+            WHERE t.category_id = ?       /* <--- Thêm điều kiện lọc */
+            ORDER BY t.id ASC";
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([$categoryId]); // <--- Truyền tham số ID vào execute
+    $tours = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Bổ sung logic gán tên và Album (Copy từ hàm getAll())
+    foreach ($tours as &$tour) {
+        $tour['hdv'] = $tour['hdv_name'] ?? 'Chưa gán';
+        $tour['ncc'] = $tour['ncc_name'] ?? 'Chưa gán';
+        $tour['category_name'] = $tour['category_name'] ?? 'Chưa gán';
+        
+        // Logic Album ảnh (nếu cần)
+        $stmt4 = $this->pdo->prepare("SELECT image_path AS image, caption FROM photos WHERE tour_id=?");
+        $stmt4->execute([$tour['id']]);
+        $tour['album'] = $stmt4->fetchAll(PDO::FETCH_ASSOC);
+        
+        unset($tour['hdv_name'], $tour['ncc_name']); 
     }
+
+    return $tours;
+}
+public function updateCategoryOnTours($categoryId) {
+    // Đặt category_id của tất cả các tour thuộc danh mục này về NULL
+    $sql = "UPDATE tours SET category_id = NULL WHERE category_id = ?";
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([$categoryId]);
+    return $stmt->rowCount();
+}
     
     /**
      * Lấy tất cả Hướng dẫn viên (huong_dan_vien) để hiển thị trong select box
@@ -264,7 +299,7 @@ return $stmt->fetchAll(PDO::FETCH_ASSOC);
     public function findItinerary($id)
     {
         $sql = "SELECT * FROM tour_itineraries WHERE id = ?";
-$stmt = $this->pdo->prepare($sql);
+        $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$id]);
         
         return $stmt->fetch(PDO::FETCH_ASSOC);

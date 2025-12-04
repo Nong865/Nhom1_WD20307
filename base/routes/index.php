@@ -109,6 +109,30 @@ switch ($action) {
         break;
 
 
+          case "tourCategory": // index.php?action=tourCategory (Hiển thị danh sách và form thêm mới)
+        (new CategoryController())->index();
+        break;
+
+    case "CategoryStore": // index.php?action=CategoryStore (Xử lý POST Thêm mới)
+        (new CategoryController())->store();
+        break;
+        
+    case "editCategory": // index.php?action=CategoryEdit&id=X (Hiển thị Form Sửa)
+        (new CategoryController())->edit();
+        break;
+        
+    case "CategoryUpdate": // index.php?action=CategoryUpdate (Xử lý POST Sửa)
+        (new CategoryController())->update();
+        break;
+        
+    case "deleteCategory": // index.php?action=CategoryDelete&id=X (Xóa)
+        (new CategoryController())->delete();
+        break;
+    case "filterTours": // index.php?action=filterTours&category_id=X
+    (new TourController())->filterTours();
+    break;
+    
+
 
         //booking
 case "bookingIndex":
@@ -154,6 +178,15 @@ case "bookingStore":
         require_once "controllers/TourController.php";
         (new TourController)->deletePhoto();
         break;  
+
+
+
+ case "journalIndex": (new TourJournalController())->index(); break;
+case "journalCreate": (new TourJournalController())->create(); break;
+case "journalStore": (new TourJournalController())->store(); break;
+case "journalEdit": (new TourJournalController())->edit(); break;
+case "journalUpdate": (new TourJournalController())->update(); break;
+case "journalDelete": (new TourJournalController())->delete(); break;
     /* ====== ROUTE DEFAULT ====== */
 
     default:

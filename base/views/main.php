@@ -23,16 +23,32 @@ $currentUser = $_SESSION['user'] ?? null;
 <div class="sidebar">
     <h5 class="text-center mb-4">QUẢN LÝ TOUR DU LỊCH</h5>
     <nav class="nav flex-column">
-        <a class="nav-link <?= ($active ?? '') == 'category' ? 'active' : '' ?>" href="index.php?action=tourCategory">Danh mục Tour</a>
-        <a class="nav-link <?= ($active ?? '') == 'schedule' ? 'active' : '' ?>" href="index.php?action=listSchedules">Quản lý lịch</a>
-        <a class="nav-link <?= ($active ?? '') == 'tour' ? 'active' : '' ?>" href="index.php?action=listTours">Quản lý tour</a>
-        <a class="nav-link <?= ($active ?? '') == 'supplier' ? 'active' : '' ?>" href="index.php?action=supplierIndex">Nhà cung cấp</a>
-        <a class="nav-link <?= ($active ?? '') == 'staff' ? 'active' : '' ?>" href="index.php?action=hdvIndex">Nhân viên</a>
+        <a class="nav-link <?= ($active ?? '') == 'category' ? 'active' : '' ?>" 
+           href="index.php?action=tourCategory">Danh mục Tour</a>
+
+        <!-- <a class="nav-link <?= ($active ?? '') == 'schedule' ? 'active' : '' ?>" 
+           href="index.php?action=listSchedules">Quản lý lịch</a> -->
+
+        <a class="nav-link <?= ($active ?? '') == 'tour' ? 'active' : '' ?>" 
+           href="index.php?action=listTours">Quản lý tour</a>
+
+        <a class="nav-link <?= ($active ?? '') == 'supplier' ? 'active' : '' ?>" 
+           href="index.php?action=supplierIndex">Nhà cung cấp</a>
+
+        <a class="nav-link <?= ($active ?? '') == 'staff' ? 'active' : '' ?>" 
+           href="index.php?action=hdvIndex">Nhân viên</a>
+
         <?php if ($currentUser && $currentUser['role_id'] == 1): ?>
-            <a class="nav-link <?= ($active ?? '') == 'user' ? 'active' : '' ?>" href="index.php?action=userIndex">Tài khoản</a>
+            <a class="nav-link <?= ($active ?? '') == 'user' ? 'active' : '' ?>" 
+               href="index.php?action=userIndex">Tài khoản</a>
         <?php endif; ?>
-         <a class="nav-link <?= ($active ?? '') == 'booking' ? 'active' : '' ?>" 
+
+        <a class="nav-link <?= ($active ?? '') == 'booking' ? 'active' : '' ?>" 
            href="index.php?action=bookingIndex">Booking</a>
+    <!-- <a class="nav-link <?= ($active ?? '') == 'journal' ? 'active' : '' ?>" 
+           href="index.php?action=journalIndex">Nhật ký hoạt động</a> -->
+
+
         <a class="nav-link text-danger" href="index.php?action=logout">Đăng xuất</a>
     </nav>
 </div>
