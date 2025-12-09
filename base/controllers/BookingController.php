@@ -110,6 +110,44 @@ class BookingController
         $this->loadView('bookings/index', ['bookings' => $bookings, 'title' => 'Danh sách Booking']);
     }
 
+    public function getItinerary() {
+        // Đảm bảo TourModel được nạp ở đầu file hoặc đây
+        // Nếu TourModel không được nạp ở đầu file:
+        require_once dirname(__DIR__) . '/models/TourModel.php'; 
+        $tourModel = new TourModel(); // Khởi tạo TourModel
+        
+        // 1. Kiểm tra và lấy tour_id
+        $tour_id = filter_input(INPUT_GET, 'tour_id', FILTER_VALIDATE_INT);
+
+        header('Content-Type: application/json');
+
+        if ($tour_id === false || $tour_id <= 0) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Tour ID không hợp lệ.']);
+            exit;
+        }
+
+        try {
+            // 2. THỰC HIỆN TRUY VẤN DB THẬT SỰ
+            // Gọi hàm getItineraryByTourId đã có trong TourModel (đã sửa ở bước trước)
+            $itinerary_data = $tourModel->getItineraryByTourId($tour_id);
+
+            // 3. Trả về kết quả JSON
+            if (!empty($itinerary_data)) {
+                 // Trả về dữ liệu lịch trình
+                 echo json_encode(['success' => true, 'itinerary' => $itinerary_data], JSON_UNESCAPED_UNICODE);
+            } else {
+                 // Nếu không tìm thấy lịch trình
+                 echo json_encode(['success' => false, 'message' => 'Không tìm thấy lịch trình chi tiết cho Tour này.'], JSON_UNESCAPED_UNICODE);
+            }
+
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Lỗi server khi truy vấn: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
+        }
+        exit;
+    }
+
     // Cập nhật trạng thái
     public function updateStatus()
     {

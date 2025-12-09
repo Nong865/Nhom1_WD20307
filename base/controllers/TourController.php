@@ -300,7 +300,51 @@ class TourController {
         header("Location: index.php?action=listTours&message=Xóa tour thành công");
         exit;
     }
-    
+    public function viewTourDetail() {
+        $tour_id = $_GET['id'] ?? null;
+        
+        if (empty($tour_id)) {
+            header("Location: index.php?action=listTours&message=Thiếu ID Tour để xem chi tiết");
+            exit;
+        }
+
+        // 1. Lấy thông tin Tour chính (bao gồm Category/Supplier name nếu Model hỗ trợ)
+        // Model::find($id) đã được dùng trong edit(), nên có thể tái sử dụng.
+        $tour = $this->tourModel->find($tour_id); 
+        
+        // 2. Lấy thông tin Lịch trình chi tiết
+        // Model::getItineraryByTourId($tour_id) đã được dùng trong viewItinerary(), tái sử dụng.
+        $itineraries = $this->tourModel->getItineraryByTourId($tour_id);
+
+        if (!$tour) {
+            header("Location: index.php?action=listTours&message=Không tìm thấy Tour này");
+            exit;
+        }
+        
+        // 3. (Tùy chọn) Tính toán lại số ngày để hiển thị trong chi tiết
+        $tour['lich_trinh'] = 'Chưa xác định';
+        if (!empty($tour['start_date']) && !empty($tour['end_date'])) {
+            try {
+                $start = new DateTime($tour['start_date']);
+                $end = new DateTime($tour['end_date']);
+                $interval = $start->diff($end);
+                $so_ngay = $interval->days + 1; 
+                $tour['lich_trinh'] = $so_ngay . ' ngày'; 
+            } catch (Exception $e) {
+                $tour['lich_trinh'] = 'Lỗi ngày tháng';
+            }
+        }
+        
+        // 4. Load View và truyền dữ liệu
+        // Giả sử file view chi tiết tour là 'tours/detail.php'
+        $content = render("tours/detail", [ 
+            'tour' => $tour,
+            'itineraries' => $itineraries,
+            'active' => 'tour'
+        ]);
+
+        include dirname(__DIR__) . "/views/main.php";
+    }
     // ----------------------------------------------------------------------
     // PHƯƠNG THỨC QUẢN LÝ LỊCH TRÌNH CHI TIẾT (Itinerary CRUD)
     // ----------------------------------------------------------------------

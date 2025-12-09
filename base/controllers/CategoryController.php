@@ -14,7 +14,6 @@ class CategoryController
         $this->tourModel = new TourModel(); // <-- KHỞI TẠO TOUR MODEL
     }
 
-    // Action: index (Hiển thị danh sách Danh mục và Form Thêm mới)
     public function index()
     {
         // 1. Lấy tất cả danh mục
@@ -37,7 +36,6 @@ class CategoryController
         include dirname(__DIR__) . "/views/main.php"; 
     }
 
-    // Action: store (Xử lý POST từ form Thêm mới)
     public function store()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -62,7 +60,6 @@ class CategoryController
         exit;
     }
 
-    // Action: edit (Hiển thị form chỉnh sửa)
     public function edit()
     {
         $id = $_GET['id'] ?? null;
@@ -89,7 +86,6 @@ class CategoryController
         include dirname(__DIR__) . "/views/main.php"; 
     }
 
-    // Action: update (Xử lý POST từ form Chỉnh sửa)
     public function update()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -120,7 +116,6 @@ class CategoryController
         exit;
     }
     
-    // Action: delete (Xử lý xóa)
     public function delete()
     {
         $id = $_GET['id'] ?? null;
@@ -131,7 +126,6 @@ class CategoryController
         }
         
         // 1. Đặt category_id của tất cả các tour liên quan về NULL
-        // Sử dụng $this->tourModel đã được khởi tạo trong constructor
         $this->tourModel->setCategoryToNull($id); 
 
         // 2. Tiến hành xóa Danh mục (sau khi đã xử lý khóa ngoại)

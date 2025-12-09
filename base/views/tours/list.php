@@ -84,9 +84,19 @@
             </td>
             
             <td><?= $t['description'] ?></td>
-            <td>
+           <td>
+                <a class="btn btn-primary btn-sm" 
+                   href="index.php?action=viewTourDetail&id=<?= $t['id'] ?>">
+                    Chi tiết
+                </a>
+                
                 <a class="btn btn-warning btn-sm" href="index.php?action=editTour&id=<?= $t['id'] ?>">Sửa</a>
-                <a class="btn btn-danger btn-sm" onclick="return confirm('Xóa?')" href="index.php?action=deleteTour&id=<?= $t['id'] ?>">Xóa</a>
+                
+                <a class="btn btn-danger btn-sm" 
+                   onclick="return confirm('Xóa?')" 
+                   href="index.php?action=deleteTour&id=<?= $t['id'] ?>">
+                    Xóa
+                </a>
             </td>
         </tr>
         <?php endforeach; ?>

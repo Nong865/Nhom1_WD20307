@@ -63,7 +63,7 @@
     <input name="total_days" type="number" class="form-control" value="<?= $total_days ?? 0 ?>" required min="1">
     
     <label>Ảnh hiện tại:</label><br>
-    <?php if(!empty($tour['main_image'])): ?>
+    <?php if(!empty($tour['main_image'])): ?>   
         <img src="<?= $tour['main_image'] ?>" width="120">
     <?php endif; ?>
 

@@ -29,7 +29,6 @@ $currentUser = $_SESSION['user'] ?? null;
     <h5 class="text-center mb-4">QUẢN LÝ TOUR DU LỊCH</h5>
     <nav class="nav flex-column">
         <a class="nav-link <?= ($active ?? '') == 'category' ? 'active' : '' ?>" href="index.php?action=tourCategory">Danh mục Tour</a>
-        <a class="nav-link <?= ($active ?? '') == 'schedule' ? 'active' : '' ?>" href="index.php?action=listSchedules">Quản lý lịch</a>
         <a class="nav-link <?= ($active ?? '') == 'tour' ? 'active' : '' ?>" href="index.php?action=listTours">Quản lý tour</a>
         <a class="nav-link <?= ($active ?? '') == 'supplier' ? 'active' : '' ?>" href="index.php?action=supplierIndex">Nhà cung cấp</a>
         <a class="nav-link <?= ($active ?? '') == 'staff' ? 'active' : '' ?>" href="index.php?action=hdvIndex">Nhân viên</a>
@@ -44,7 +43,6 @@ $currentUser = $_SESSION['user'] ?? null;
 
 <div class="content">
     <?php
-    // CHÈN NỘI DUNG VIEW CON VÀO ĐÂY (ĐÃ SỬA LỖI FATAL)
     echo $content ?? ''; 
     ?>
 </div>

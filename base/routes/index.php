@@ -64,6 +64,7 @@ switch ($action) {
     case "editTour": (new TourController())->edit(); break;
     case "updateTour": (new TourController())->update(); break;
     case "deleteTour": (new TourController())->delete(); break;
+    case "viewTourDetail": (new TourController())->viewTourDetail(); break;
 
     /* ====== CATEGORY CRUD ====== */
 
@@ -170,6 +171,9 @@ switch ($action) {
         
     case "bookingDelete": // Xử lý xóa Booking
         (new BookingController())->delete();
+        break;
+    case "getItinerary": 
+        (new BookingController())->getItinerary(); 
         break;
 
         /* ---------- ALBUM TOUR ---------- */

@@ -7,9 +7,11 @@ if (!isset($tour) || empty($tour)) {
     return;
 }
 
-// Định nghĩa BASE_URL nếu chưa được định nghĩa ở helper (để đảm bảo đường dẫn CSS/Image hoạt động)
+// Định nghĩa BASE_URL nếu chưa được định nghĩa (chỉ dành cho môi trường dev, nên tránh dùng trong production)
 if (!defined('BASE_URL')) {
-    define('BASE_URL', '/DA_Nhom1/base');
+    // RẤT QUAN TRỌNG: Đảm bảo BASE_URL có giá trị đúng, ví dụ: /DA_Nhom1/base
+    // Tùy theo cấu hình dự án của bạn, nếu BASE_URL chưa được định nghĩa từ ngoài, bạn có thể định nghĩa tạm ở đây:
+    // define('BASE_URL', '/DA_Nhom1/base'); 
 }
 
 // Định dạng giá trị trước khi sử dụng
@@ -17,7 +19,11 @@ $tour_name = htmlspecialchars($tour['name'] ?? 'Tour không tên');
 $tour_price = number_format($tour['price'] ?? 0, 0, ',', '.');
 $tour_description = htmlspecialchars($tour['description'] ?? 'Không có mô tả chi tiết.');
 $tour_image = htmlspecialchars($tour['main_image'] ?? '');
-$tour_lich_trinh = htmlspecialchars($tour['lich_trinh'] ?? 'Chưa xác định'); // Giả định đã được format trong Controller
+$tour_lich_trinh = htmlspecialchars($tour['lich_trinh'] ?? 'Chưa xác định'); 
+
+// 💡 CẬP NHẬT CHÍNH: Chuẩn hóa đường dẫn ảnh
+// Loại bỏ dấu '/' ở đầu $tour_image (ví dụ: biến 'assets/uploads/...')
+$clean_image_path = ltrim($tour_image, '/'); 
 ?>
 
 <!DOCTYPE html>
@@ -25,22 +31,21 @@ $tour_lich_trinh = htmlspecialchars($tour['lich_trinh'] ?? 'Chưa xác định')
 <head>
     <meta charset="UTF-8">
     <title>Chi Tiết Tour: <?php echo $tour_name; ?></title>
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/style.css">
     </head>
 <body>
 
     <div class="container my-5">
         
-        <a href="index.php?action=tourCategory" class="btn btn-secondary mb-4">← Quay lại danh mục</a>
+        <a href="index.php?action=listTours" class="btn btn-secondary mb-4">← Quay lại danh sách Tour</a>
         
-        <h1 class="mb-4 text-primary">Chi Tiết Tour: **<?php echo $tour_name; ?>**</h1>
+        <h1 class="mb-4 text-primary">Chi Tiết Tour: <?php echo $tour_name; ?></h1>
         
         <div class="row">
             
-            <div class="col-md-6">
+           <div class="col-md-6">
                 <?php if ($tour_image): ?>
                     <img 
-                        src="<?php echo BASE_URL; ?>/<?php echo $tour_image; ?>" 
+                        src="/DA_Nhom1/base/<?php echo $clean_image_path; ?>" 
                         class="img-fluid rounded shadow-sm" 
                         alt="<?php echo $tour_name; ?>"
                         style="max-height: 450px; width: 100%; object-fit: cover;"
@@ -52,18 +57,26 @@ $tour_lich_trinh = htmlspecialchars($tour['lich_trinh'] ?? 'Chưa xác định')
             
             <div class="col-md-6">
                 <div class="card p-4 border-0 shadow-sm">
-                    <h3 class="card-title text-danger mb-3">Giá: **<?php echo $tour_price; ?>** VNĐ</h3>
+                    <h3 class="card-title text-danger mb-3">Giá: <?php echo $tour_price; ?> VNĐ</h3>
                     
                     <ul class="list-unstyled detail-list">
                         <li><strong>Mã Tour:</strong> <?php echo htmlspecialchars($tour['id'] ?? 'N/A'); ?></li>
                         <li><strong>Lịch trình:</strong> <?php echo $tour_lich_trinh; ?></li>
                         <li><strong>Ngày khởi hành:</strong> <?php echo htmlspecialchars($tour['start_date'] ?? 'Liên hệ'); ?></li>
-                        <li><strong>Ngày kết thúc:</strong> <?php echo htmlspecialchars($tour['end_date'] ?? 'Liên hệ'); ?></li>
-                        <li><strong>Loại hình:</strong> <?php // Hiển thị tên danh mục nếu có ?></li>
-                        <li><strong>Nhà cung cấp:</strong> <?php // Hiển thị tên NCC nếu có ?></li>
+                                                
+                        <li><strong>Loại hình:</strong> <?php echo htmlspecialchars($tour['category_name'] ?? 'N/A'); ?></li>
+                        
+                        <li><strong>Nhà cung cấp:</strong> <?php echo htmlspecialchars($tour['ncc'] ?? 'N/A'); ?></li>
+                        
+                        <li><strong>Hướng dẫn viên:</strong> <?php echo htmlspecialchars($tour['hdv'] ?? 'Chưa phân công'); ?></li>
                     </ul>
 
-                    <button class="btn btn-success btn-lg mt-3">ĐẶT TOUR NGAY</button>
+                    <a 
+                            href="index.php?action=bookingCreate&tour_id=<?php echo htmlspecialchars($tour['id'] ?? ''); ?>" 
+                            class="btn btn-success btn-lg mt-3 w-100" 
+                            style="text-decoration: none;"
+                        > ĐẶT TOUR NGAY
+                    </a>
                 </div>
             </div>
         </div>
