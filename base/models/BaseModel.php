@@ -6,6 +6,11 @@ class BaseModel
     protected $key = 'id';
     protected $pdo;
 
+    public function getAll()
+{
+    return $this->all();
+}
+
     public function __construct()
     {
         $dsn = sprintf(

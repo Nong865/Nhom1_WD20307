@@ -45,8 +45,10 @@ $currentUser = $_SESSION['user'] ?? null;
 
         <a class="nav-link <?= ($active ?? '') == 'booking' ? 'active' : '' ?>" 
            href="index.php?action=bookingIndex">Booking</a>
-    <!-- <a class="nav-link <?= ($active ?? '') == 'journal' ? 'active' : '' ?>" 
-           href="index.php?action=journalIndex">Nhật ký hoạt động</a> -->
+      <a class="nav-link <?= ($active ?? '') == 'journal' ? 'active' : '' ?>" 
+   href="?action=journalIndex&tour_id=<?= $tour['id'] ?>">
+    Nhật ký hoạt động
+</a>
 
 
         <a class="nav-link text-danger" href="index.php?action=logout">Đăng xuất</a>

@@ -181,12 +181,35 @@ case "bookingStore":
 
 
 
- case "journalIndex": (new TourJournalController())->index(); break;
-case "journalCreate": (new TourJournalController())->create(); break;
-case "journalStore": (new TourJournalController())->store(); break;
-case "journalEdit": (new TourJournalController())->edit(); break;
-case "journalUpdate": (new TourJournalController())->update(); break;
-case "journalDelete": (new TourJournalController())->delete(); break;
+ case "journalIndex":
+    $controller = new TourJournalController();
+    $controller->index();
+    break;
+
+case "journalCreate":
+    $controller = new TourJournalController();
+    $controller->create();
+    break;
+
+case "journalStore":
+    $controller = new TourJournalController();
+    $controller->store();
+    break;
+
+case "journalEdit":
+    $controller = new TourJournalController();
+    $controller->edit();
+    break;
+
+case "journalUpdate":
+    $controller = new TourJournalController();
+    $controller->update();
+    break;
+
+case "journalDelete":
+    $controller = new TourJournalController();
+    $controller->delete();
+    break;
     /* ====== ROUTE DEFAULT ====== */
 
     default:

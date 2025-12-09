@@ -1,24 +1,25 @@
-<?php require_once "views/layout/header.php"; ?>
+<h3>Thêm nhật ký tour</h3>
 
-<div class="container mt-4">
-    <h2>✏️ Thêm nhật ký tour</h2>
+<form method="POST" action="?action=journalStore" enctype="multipart/form-data">
+    <input type="hidden" name="tour_id" value="<?= $_GET['tour_id'] ?>">
 
-    <form method="POST" action="?action=journalStore">
-        <input type="hidden" name="tour_id" value="<?= $tour_id ?>">
+    <label>Ngày:</label>
+    <input type="date" name="journal_date" required>
 
-        <div class="mb-3">
-            <label>Tiêu đề</label>
-            <input type="text" name="title" class="form-control" required>
-        </div>
+    <label>Tiêu đề:</label>
+    <input type="text" name="title" class="form-control">
 
-        <div class="mb-3">
-            <label>Nội dung</label>
-            <textarea name="content" class="form-control" rows="6" required></textarea>
-        </div>
+    <label>Hoạt động nổi bật:</label>
+    <textarea name="activities" rows="3" class="form-control"></textarea>
 
-        <button class="btn btn-success">Lưu</button>
-        <a href="?action=journalIndex&tour_id=<?= $tour_id ?>" class="btn btn-secondary">Hủy</a>
-    </form>
-</div>
+    <label>Sự cố & cách xử lý:</label>
+    <textarea name="issues" rows="3" class="form-control"></textarea>
 
-<?php require_once "views/layout/footer.php"; ?>
+    <label>Phản hồi khách hàng:</label>
+    <textarea name="feedback" rows="3" class="form-control"></textarea>
+
+    <label>Ảnh minh chứng:</label>
+    <input type="file" name="image" class="form-control">
+
+    <button class="btn btn-primary mt-3">Lưu</button>
+</form>

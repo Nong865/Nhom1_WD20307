@@ -1,7 +1,6 @@
 <?php
-
 require_once "models/TourJournalModel.php";
-require_once "models/TourModel.php";  // để load danh sách tour
+require_once "models/TourModel.php";
 
 class TourJournalController
 {
@@ -14,81 +13,145 @@ class TourJournalController
         $this->tour = new TourModel();
     }
 
-    /* ============================
-          DANH SÁCH NHẬT KÝ
-    ============================ */
+    /* ====================== DANH SÁCH ====================== */
     public function index()
     {
         $tour_id = $_GET['tour_id'] ?? null;
 
         if (!$tour_id) {
-            die("Thiếu tour_id");
+            $_SESSION['error'] = "Vui lòng chọn tour trước.";
+            header("Location: index.php?action=listTours");
+            exit;
         }
 
         $tour = $this->tour->find($tour_id);
         $journals = $this->journal->getByTour($tour_id);
 
-        include "views/journal/index.php";
+        $content = "views/journal/index.php";
+        $active = "tour";
+        include __DIR__ . '/../views/main.php';
     }
 
-    /* ============================
-              FORM THÊM
-    ============================ */
+    /* ====================== FORM THÊM ====================== */
     public function create()
     {
         $tour_id = $_GET['tour_id'] ?? null;
-        include "views/journal/create.php";
+
+        if (!$tour_id) {
+            header("Location: index.php?action=listTours");
+            exit;
+        }
+
+        $content = "views/journal/create.php";
+        include __DIR__ . '/../views/main.php';
     }
 
-    /* ============================
-               LƯU
-    ============================ */
+    /* ====================== LƯU ====================== */
     public function store()
-    {
-        $data = [
-            "tour_id" => $_POST['tour_id'],
-            "title" => $_POST['title'],
-            "content" => $_POST['content'],
-            "created_at" => date("Y-m-d H:i:s")
-        ];
-
-        $this->journal->create($data);
-
-        header("Location: ?action=journalIndex&tour_id=" . $_POST['tour_id']);
+{
+    // Tạo thư mục upload nếu chưa có
+    $uploadDir = __DIR__ . '/../../assets/uploads/journal/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
     }
 
-    /* ============================
-               FORM SỬA
-    ============================ */
+    // Lấy dữ liệu form an toàn
+    $tour_id      = $_POST['tour_id'] ?? null;
+    $journal_date = trim($_POST['journal_date'] ?? '');
+    $title        = trim($_POST['title'] ?? '');
+    $activities   = trim($_POST['activities'] ?? '');
+    $issues       = trim($_POST['issues'] ?? '');
+    $feedback     = trim($_POST['feedback'] ?? '');
+
+    if (!$tour_id || $journal_date == '') {
+        $_SESSION['error'] = "Thiếu thông tin bắt buộc.";
+        header("Location: index.php?action=journalCreate&tour_id=" . $tour_id);
+        exit;
+    }
+
+    // Upload 1 ảnh
+    $imagePath = null;
+    if (!empty($_FILES['image']['name'])) {
+        $file = $_FILES['image'];
+
+        if ($file['error'] === UPLOAD_ERR_OK) {
+            $safeName = time() . '_' . preg_replace('/[^A-Za-z0-9._-]/', '_', $file['name']);
+            $target = $uploadDir . $safeName;
+
+            if (move_uploaded_file($file['tmp_name'], $target)) {
+                $imagePath = 'assets/uploads/journal/' . $safeName;
+            }
+        }
+    }
+
+    // Dữ liệu lưu DB
+    $data = [
+        "tour_id"      => $tour_id,
+        "journal_date" => $journal_date,
+        "title"        => $title,
+        "activities"   => $activities,
+        "issues"       => $issues,
+        "feedback"     => $feedback,
+        "image"        => $imagePath,
+        "created_at"   => date("Y-m-d H:i:s")
+    ];
+
+    $this->journal->create($data);
+
+    header("Location: index.php?action=journalIndex&tour_id=" . $tour_id);
+    exit;
+}
+
+    /* ====================== FORM SỬA ====================== */
     public function edit()
     {
         $id = $_GET['id'];
         $row = $this->journal->find($id);
 
-        include "views/journal/edit.php";
+        $content = "views/journal/edit.php";
+        include __DIR__ . '/../views/main.php';
     }
 
-    /* ============================
-                UPDATE
-    ============================ */
+    /* ====================== UPDATE ====================== */
     public function update()
     {
         $id = $_POST['id'];
         $tour_id = $_POST['tour_id'];
 
+        $uploadDir = "assets/uploads/journal/";
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $image = $_POST['old_image'];
+
+        if (!empty($_FILES['image']['name'])) {
+            $file = $_FILES['image'];
+            $filename = time() . "_" . preg_replace('/[^A-Za-z0-9._-]/', '_', $file['name']);
+            $path = $uploadDir . $filename;
+
+            move_uploaded_file($file['tmp_name'], $path);
+            $image = $path;
+        }
+
         $data = [
-            "title" => $_POST['title'],
-            "content" => $_POST['content']
+            "tour_id"       => trim($_POST['tour_id']),
+            "journal_date"  => trim($_POST['journal_date']),
+            "title"         => trim($_POST['title']),
+            "activities"    => trim($_POST['activities']),
+            "issues"        => trim($_POST['issues']),
+            "feedback"      => trim($_POST['feedback']),
+            "image"         => $image,
+            "updated_at"    => date("Y-m-d H:i:s")
         ];
 
         $this->journal->updateJournal($id, $data);
 
-        header("Location: ?action=journalIndex&tour_id=$tour_id");
+        header("Location: index.php?action=journalIndex&tour_id=$tour_id");
+        exit;
     }
 
-    /* ============================
-                 DELETE
-    ============================ */
+    /* ====================== DELETE ====================== */
     public function delete()
     {
         $id = $_GET['id'];
@@ -96,6 +159,7 @@ class TourJournalController
 
         $this->journal->deleteJournal($id);
 
-        header("Location: ?action=journalIndex&tour_id=$tour_id");
+        header("Location: index.php?action=journalIndex&tour_id=$tour_id");
+        exit;
     }
 }
