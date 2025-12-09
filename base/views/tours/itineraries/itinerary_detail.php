@@ -1,10 +1,10 @@
 <div class="container mt-4">
-    <a href="index.php?action=listTours" class="btn btn-secondary mb-4">← Quay lại Danh sách Tour</a>
+    <a href="index.php?action=listTours" class="btn btn-secondary mb-4"> Quay lại Danh sách Tour</a>
     
-    <h3 class="mb-3">📅 Lịch trình Chi tiết Tour: **<?= $tour['name'] ?? 'Không tìm thấy Tour' ?>**</h3>
+    <h3 class="mb-3"> Lịch trình Chi tiết Tour: <?= $tour['name'] ?? 'Không tìm thấy Tour' ?></h3>
     
     <a href="index.php?action=addItinerary&tour_id=<?= $tour['id'] ?>" class="btn btn-success mb-3">
-        + Thêm Lịch trình cho Tour này
+        Thêm Lịch trình cho Tour này
     </a>
 
     <?php if (empty($itineraries)): ?>
@@ -15,15 +15,14 @@
         
         <div class="itinerary-list">
             <?php 
-            // Vòng lặp qua danh sách lịch trình chi tiết đã được sắp xếp theo day_number
             foreach ($itineraries as $item): 
             ?>
             <div class="card mb-3 shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h5>Ngày <?= $item['day_number'] ?>: **<?= htmlspecialchars($item['title']) ?>**</h5>
+                    <h5>Ngày <?= $item['day_number'] ?>: <?= htmlspecialchars($item['title']) ?></h5>
                 </div>
                 <div class="card-body">
-                    <p class="card-text"><?= nl2br(htmlspecialchars($item['details'])) ?></p>
+                    <p class="card-text"><?= nl2br($item['details']) ?></p>
                     
                     <hr>
                     <div class="actions">

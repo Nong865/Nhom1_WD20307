@@ -1,0 +1,141 @@
+<?php
+require_once dirname(__DIR__) . '/configs/helper.php'; 
+require_once dirname(__DIR__) . '/models/CategoryModel.php';
+require_once dirname(__DIR__) . '/models/TourModel.php';
+
+class CategoryController
+{
+    private $categoryModel;
+    private $tourModel; // <-- KHAI BÁO BIẾN CHO TOUR MODEL
+
+    public function __construct()
+    {
+        $this->categoryModel = new CategoryModel();
+        $this->tourModel = new TourModel(); // <-- KHỞI TẠO TOUR MODEL
+    }
+
+    public function index()
+    {
+        // 1. Lấy tất cả danh mục
+        $categories = $this->categoryModel->getAll();
+        
+        // Lấy thông báo (nếu có)
+        $message = $_GET['message'] ?? '';
+        $type = $_GET['type'] ?? '';
+        $active = 'category'; 
+        $title = 'Quản lý Danh mục Tour';
+
+        // 2. TẠO NỘI DUNG VIEW và lưu vào biến $content
+        $content = render("categories/index", [ 
+            'categories' => $categories,
+            'message' => $message,
+            'type' => $type
+        ]);
+
+        // 3. Load Layout Chính (sử dụng đường dẫn tuyệt đối)
+        include dirname(__DIR__) . "/views/main.php"; 
+    }
+
+    public function store()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: index.php?action=tourCategory'); // Đã sửa tên route
+            exit;
+        }
+
+        $data = ['name' => trim($_POST['name'] ?? '')];
+
+        if (empty($data['name'])) {
+            header('Location: index.php?action=tourCategory&message=Tên danh mục không được để trống&type=danger');
+            exit;
+        }
+
+        $result = $this->categoryModel->insert($data);
+
+        if ($result) {
+            header('Location: index.php?action=tourCategory&message=Thêm danh mục thành công&type=success');
+        } else {
+            header('Location: index.php?action=tourCategory&message=Lỗi cơ sở dữ liệu khi thêm&type=danger');
+        }
+        exit;
+    }
+
+    public function edit()
+    {
+        $id = $_GET['id'] ?? null;
+        
+        if (!$id || !($category = $this->categoryModel->find($id))) {
+            header('Location: index.php?action=tourCategory&message=Không tìm thấy danh mục&type=danger');
+            exit;
+        }
+        
+        // Lấy thông báo (nếu có)
+        $message = $_GET['message'] ?? '';
+        $type = $_GET['type'] ?? '';
+        $active = 'category';
+        $title = 'Chỉnh sửa Danh mục';
+        
+        // TẠO NỘI DUNG VIEW và lưu vào biến $content
+        $content = render("categories/edit", [
+            'category' => $category,
+            'message' => $message,
+            'type' => $type
+        ]);
+
+        // Load Layout Chính
+        include dirname(__DIR__) . "/views/main.php"; 
+    }
+
+    public function update()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: index.php?action=tourCategory');
+            exit;
+        }
+        
+        $id = $_POST['id'] ?? null;
+        $data = ['name' => trim($_POST['name'] ?? '')];
+
+        if (!$id) {
+            header('Location: index.php?action=tourCategory&message=Thiếu ID danh mục&type=danger');
+            exit;
+        }
+        
+        if (empty($data['name'])) {
+            header('Location: index.php?action=CategoryEdit&id='.$id.'&message=Tên danh mục không được để trống&type=danger');
+            exit;
+        }
+
+        $result = $this->categoryModel->update($id, $data);
+
+        if ($result) {
+            header('Location: index.php?action=tourCategory&message=Cập nhật danh mục thành công&type=success');
+        } else {
+            header('Location: index.php?action=tourCategory&message=Lỗi cơ sở dữ liệu khi cập nhật&type=danger');
+        }
+        exit;
+    }
+    
+    public function delete()
+    {
+        $id = $_GET['id'] ?? null;
+
+        if (!$id) {
+            header('Location: index.php?action=tourCategory&message=Thiếu ID danh mục cần xóa&type=danger');
+            exit;
+        }
+        
+        // 1. Đặt category_id của tất cả các tour liên quan về NULL
+        $this->tourModel->setCategoryToNull($id); 
+
+        // 2. Tiến hành xóa Danh mục (sau khi đã xử lý khóa ngoại)
+        $result = $this->categoryModel->delete($id);
+
+        if ($result) {
+            header('Location: index.php?action=tourCategory&message=Xóa danh mục thành công&type=success');
+        } else {
+            header('Location: index.php?action=tourCategory&message=Xóa danh mục thất bại&type=danger');
+        }
+        exit;
+    }
+}
